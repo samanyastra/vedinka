@@ -1,5 +1,12 @@
+import os
 from pathlib import Path
 from datetime import timedelta
+import environ
+
+# Load .env file
+BASE_DIR = Path(__file__).resolve().parent.parent
+env = environ.Env()
+env.read_env(BASE_DIR / '.env')
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,6 +32,7 @@ INHOUSE_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    'drf_spectacular',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -56,7 +64,9 @@ ROOT_URLCONF = 'vedinka.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'apps', 'messaging', 'templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -104,12 +114,25 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+APPEND_SLASH=True
+
 
 #~~~~~ REST FRAMEWORK Config ~~~~
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
+
+}
+
+# Django Spectacular settings
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Vedinka API',
+    'DESCRIPTION': 'A Place for authors to sell books at their own decision',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # OTHER SETTINGS
 }
 
 #~~~ JWT Configuration (Django Simple JWT) ~~~~~
@@ -160,6 +183,20 @@ SIMPLE_JWT = {
     "CHECK_USER_IS_ACTIVE": True,
 }
 
+# domain settings
+DOMAIN_ADDRESS = "http://127.0.0.1:9001/"
+
+# MAILING SETTINGS
 OUTLOOK_CLIENT_ID="your_outlook_client_id"
 OUTLOOK_CLIENT_SECRET="your_outlook_client_secret"
 OUTLOOK_TENANT_ID="your outlook tenant id"
+DEFAULT_FROM_MAIL = "noreply@samanyastra.com"
+
+
+# CELERY settings
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Kolkata'
+CELERY_BROKER_URL = f"amqp://{env('RABBITMQ_DEFAULT_USER', default='')}:{env('RABBITMQ_DEFAULT_PASS',default='')}@{env('CELERY_HOST', default='rabbitmq-mgmt')}//"
+print(CELERY_BROKER_URL)

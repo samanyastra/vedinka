@@ -86,7 +86,7 @@ class OutlookBackend(EmailBackend):
         if access_token:
             self.prepare_email()
             response = requests.post(self.default_from_url.format(sender_email=self.sender), headers=headers, json=self.email_data)
-
+            print(response.content)
             if response.status_code == 202:
                 print("Email sent successfully!")
             else:

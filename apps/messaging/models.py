@@ -3,6 +3,7 @@ from django.template.loader import render_to_string, get_template
 from django.conf import settings
 from pathlib import Path
 from apps.common.models import BaseModel
+import os
 
 
 class MailTemplates(BaseModel):
@@ -86,7 +87,7 @@ class MailTemplates(BaseModel):
             # Fallback: Try reading directly from templates directory
             try:
                 for template_dir in settings.TEMPLATES[0]['DIRS']:
-                    template_file_path = Path(template_dir) / self.template_path
+                    template_file_path = Path(template_dir) / self.template_path.split(os.sep)[-1]
                     if template_file_path.exists():
                         with open(template_file_path, 'r', encoding='utf-8') as f:
                             return f.read()

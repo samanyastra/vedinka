@@ -1,32 +1,32 @@
 from django.core.mail import EmailMultiAlternatives
 from django.template import Template, Context
+from django.conf import settings
 
-# from celery import shared_task
+from celery import shared_task
 
-from .backends import EmailBackend
+from .backends.outlook import OutlookBackend
 from .models import MailTemplates, OutBounds
 from apps.common.utils import get_object_or_none
 
 
-# @shared_task(bind=True)
-def send_email(status, template_name, subject, *to_mail, **context):
+@shared_task(bind=True)
+def send_email(status, template_name: str, subject: str, *to_mail, **context):
     """should not be called directly only call via send_email.delay"""
 
-    mail_template = get_object_or_none(MailTemplates, name=template_name)
+    mail_template = get_object_or_none(MailTemplates, template_name=template_name)
+    print(mail_template)
 
     if mail_template is None:
         raise ValueError("Invalid mail template given")
    
     subject = subject
-    # TODO work around need to be done to get from email from settings itself.
-    from_mail = mail_template.from_mail
-    to_mail = to_mail
-    template_string = mail_template.template_name 
+    from_mail = settings.DEFAULT_FROM_MAIL
+    template_string = mail_template.get_template_string() 
 
     template = Template(template_string)
     mail_body = template.render(Context(context))
 
-    msg = EmailBackend(subject, mail_body, from_mail, to_mail)
+    msg = OutlookBackend(subject, message_body=mail_body, sender=from_mail, to=[*to_mail])
     msg.send()
 
     mail_obj = OutBounds.objects.create( 
@@ -41,14 +41,14 @@ def send_email(status, template_name, subject, *to_mail, **context):
 # @shared_task(bind=True)
 def send_email_with_attachment(status, template_name, subject, *to_mail, **context):
 
-    mail_template = MailTemplates.objects.get(name=template_name)
+    mail_template = MailTemplates.objects.get(template_name=template_name)
 
     subject = subject
-    from_mail = from_mail
     to_mail = to_mail
-    template_string = mail_template.template 
+    template_string = mail_template.get_template_string() 
     template = Template(template_string)
     mail_body = template.render(Context(context))
+    from_mail = settings.DEFAULT_FROM_MAIL
 
     msg = EmailMultiAlternatives(subject,
                                  mail_body,

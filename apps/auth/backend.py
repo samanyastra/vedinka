@@ -1,8 +1,13 @@
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import AuthenticationFailed
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
+from apps.auth.models import ActivationTokens, TokenTypes
+from apps.common.utils import create_rand_string
 from apps.constants.errors import en as errors
+from apps.constants.application import ACTIVATION_TOKEN_LENGTH
+
 
 
 User = get_user_model()
@@ -94,5 +99,36 @@ def blacklist_token(refresh_token):
             'message': 'Token blacklisted successfully'
         }
     except Exception as e:
-        raise AuthenticationFailed(f"Failed to blacklist token: {str(e)}")
+        raise AuthenticationFailed(errors.FAILED_TO_BLACKLIST.format(str(e)))
 
+
+def create_activation_token(user, token_type_code: str):
+    """
+    Create or refresh an activation token for a user.
+    Args:
+        user: User instance to generate an activation token for.
+
+    Returns:
+        str: Activation token string.
+
+    Raises:
+        ValueError: If the user is already activated.
+    """
+    token_type_str = token_type_code.split("_")[0]
+    token_type, _ = TokenTypes.objects.get_or_create(
+                                        type_code=token_type_code,
+		                                token_type=token_type_str
+                                        )
+    token_obj, created = ActivationTokens.objects\
+                                         .get_or_create(
+                                             user=user,
+                                             token_type=token_type)
+    if created:
+        user_token = create_rand_string(ACTIVATION_TOKEN_LENGTH)
+        token_obj.token = user_token
+    else:
+        if token_obj.is_activated:
+            raise ValueError(errors.USER_ALREADY_ACTIVATED)
+        token_obj.updated_at = timezone.now()
+    token_obj.save()
+    return token_obj.token

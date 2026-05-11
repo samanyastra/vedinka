@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activate Your Vedinka Account</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(122, 19, 84, 0.08);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #7A1354 0%, #6B0F45 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .header-title {
+            color: #F7F1F5;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        
+        .header-subtitle {
+            color: #EDEBE4;
+            font-size: 13px;
+            margin-top: 8px;
+            opacity: 0.9;
+            letter-spacing: 0.5px;
+        }
+        
+        .divider {
+            height: 3px;
+            background-color: #F7F1F5;
+            margin-top: 15px;
+            width: 60px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .content {
+            padding: 50px 40px;
+            background-color: #ffffff;
+        }
+        
+        .greeting {
+            color: #7A1354;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            color: #333333;
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        
+        .message strong {
+            color: #74642F;
+            font-weight: 600;
+        }
+        
+        .highlight {
+            color: #7A1354;
+            font-weight: 600;
+        }
+        
+        .cta-section {
+            margin: 40px 0;
+            text-align: center;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #7A1354 0%, #6B0F45 100%);
+            color: #F7F1F5;
+            padding: 16px 45px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(122, 19, 84, 0.25);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(122, 19, 84, 0.35);
+        }
+        
+        .fallback-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #F7F1F5;
+        }
+        
+        .fallback-label {
+            color: #74642F;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: block;
+        }
+        
+        .fallback-link {
+            color: #7A1354;
+            font-size: 13px;
+            word-break: break-all;
+            text-decoration: underline;
+        }
+        
+        .footer {
+            background-color: #F7F1F5;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #EDEBE4;
+        }
+        
+        .footer-text {
+            color: #74642F;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .footer-brand {
+            color: #7A1354;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        
+        .social-links {
+            margin-top: 15px;
+        }
+        
+        .social-link {
+            display: inline-block;
+            margin: 0 8px;
+            color: #7A1354;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .footer {
+                padding: 20px 15px;
+            }
+            
+            .greeting {
+                font-size: 18px;
+            }
+            
+            .header-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="header-title">VEDINKA</h1>
+            <p class="header-subtitle">Welcome to the World of Books</p>
+            <div class="divider"></div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <p class="greeting">Hello Reader,</p>
+            
+            <p class="message">
+                Thank you for signing up! We're excited to have you join our community. 
+                You're <span class="highlight">just one step away</span> from unlocking 
+                the <strong>world of books</strong>. 
+                <br><br>
+                Activate your account now to get started and explore our curated collection.
+            </p>
+            
+            <!-- CTA Button -->
+            <div class="cta-section">
+                <a href="{{ activation_link }}" class="cta-button">ACTIVATE ACCOUNT</a>
+            </div>
+            
+            <!-- Fallback Link -->
+            <div class="fallback-section">
+                <span class="fallback-label">Or Copy & Paste This Link</span>
+                <p class="fallback-link">{{ activation_link }}</p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                If you didn't create this account, please ignore this email or 
+                <a href="{{ support_link }}" style="color: #7A1354; text-decoration: none;">contact support</a>.
+            </p>
+            <p class="footer-brand">VEDINKA</p>
+            <div class="social-links">
+                <a href="#" class="social-link">Privacy</a>
+                <span style="color: #74642F;">•</span>
+                <a href="#" class="social-link">Terms</a>
+                <span style="color: #74642F;">•</span>
+                <a href="#" class="social-link">Contact</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

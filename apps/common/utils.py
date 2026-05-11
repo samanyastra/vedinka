@@ -1,11 +1,21 @@
 """
 Common utility functions for the application.
 """
+import secrets
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.conf import settings
-from datetime import timedelta
-from http.cookies import SimpleCookie
 
+from decimal import Decimal
+
+
+
+def create_rand_string(length=20):
+    """Generate a URL-safe random string of the requested length."""
+    if length <= 0:
+        return ''
+
+    token = secrets.token_urlsafe(length)
+    return token[:length]
 
 
 def get_object_or_none(model_class, *args, **kwargs):
@@ -15,6 +25,16 @@ def get_object_or_none(model_class, *args, **kwargs):
         return None
     except MultipleObjectsReturned:
         return model_class.objects.filter(**kwargs).latest('created_at')
+    
+
+def get_percentage(value: Decimal, percentage: Decimal) -> Decimal:
+    percentage = Decimal(percentage)
+    value = Decimal(value)
+    return (value/100)*percentage
+
+
+def make_str_ready_for_var(value: str) -> str:
+    return str(value).lower().replace(" ","_")
 
 
 def set_response_cookie(response, key, value, **options):
