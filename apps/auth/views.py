@@ -1,11 +1,13 @@
 from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from typing import Dict, Any
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
+from rest_framework.request import Request
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import AuthenticationFailed
 
@@ -36,7 +38,7 @@ User = get_user_model()
 
 
 @api_view(["POST"])
-def register_user(request):
+def register_user(request: Request) -> Response:
     user_data = RegisterSerializer(data=request.data)
 
     if not user_data.is_valid():
@@ -47,7 +49,7 @@ def register_user(request):
 
 
 @api_view(["POST"])
-def login(request):
+def login(request: Request) -> Response:
     user = LoginSerialzier(data=request.data)
 
     if not user.is_valid():
@@ -63,7 +65,7 @@ def login(request):
 
 
 @api_view(["GET"])
-def refresh(request):
+def refresh(request: Request) -> Response:
     refresh_token = request.COOKIES.get("vedinka_refresh")
     if not refresh_token:
         raise ValidationError(errors.REFRESH_TOKEN_NOT_FOUND_ERROR, code=400)
@@ -94,7 +96,7 @@ def refresh(request):
 
 
 @api_view(["POST"])
-def logout(request):
+def logout(request: Request) -> Response:
     """Logout user by blacklisting refresh token and deleting cookie."""
     refresh_token = request.COOKIES.get("vedinka_refresh")
     if not refresh_token:
@@ -110,12 +112,12 @@ def logout(request):
 
 
 @api_view(["GET"])
-def resend_activation_link(request):
+def resend_activation_link(request: Request) -> Response:
     pass
 
 
 @api_view(["GET"])
-def activate_user(request):
+def activate_user(request: Request) -> Response:
     token = request.GET.get("hint", "").strip()
 
     if not token:
@@ -137,7 +139,7 @@ def activate_user(request):
 
 
 @api_view(["GET"])
-def forgot_password(request):
+def forgot_password(request: Request) -> Response:
     email = request.GET.get("email")
     s = EmailSerializer(data={"email": email})
     if not s.is_valid():
@@ -164,7 +166,7 @@ def forgot_password(request):
 
 
 @api_view(["GET"])
-def reset_password(request):
+def reset_password(request: Request) -> Response:
 
     serializer = ResetPasswordSerializer(data=request.GET)
 

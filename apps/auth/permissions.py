@@ -1,8 +1,10 @@
 from rest_framework.permissions import BasePermission
+from rest_framework.request import Request
+from typing import Any
 
 
 class IsAdmin(BasePermission):
-    def has_permission(self, request, view):
+    def has_permission(self, request: Request, view: Any) -> bool:
         return (
             request.user
             and request.user.is_authenticated
@@ -11,7 +13,7 @@ class IsAdmin(BasePermission):
 
 
 class IsAuthor(BasePermission):
-    def has_permission(self, request, view):
+    def has_permission(self, request: Request, view: Any) -> bool:
         return (
             request.user
             and request.user.is_authenticated
@@ -20,7 +22,7 @@ class IsAuthor(BasePermission):
 
 
 class IsUser(BasePermission):
-    def has_permission(self, request, view):
+    def has_permission(self, request: Request, view: Any) -> bool:
         return (
             request.user
             and request.user.is_authenticated

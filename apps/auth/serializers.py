@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password as dj_validate_pwd
+from typing import Dict, Any
 
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, Serializer
@@ -16,7 +17,7 @@ User = get_user_model()
 class PasswordValidationMixin:
     """Reusable password validation logic for serializers."""
 
-    def validate_password(self, value):
+    def validate_password(self, value: str) -> str:
         """Validate password meets requirements."""
         pwd = value.strip()
         if 16 < len(pwd) < 8:
@@ -32,7 +33,7 @@ class PasswordValidationMixin:
             )
         return value
 
-    def validate_password_match(self, attrs):
+    def validate_password_match(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         """Validate that password and confirm_password match."""
         pwd = attrs.get("password", "").strip()
         conf_pwd = attrs.get("confirm_password", "").strip()
@@ -58,10 +59,10 @@ class RegisterSerializer(PasswordValidationMixin, Serializer):
     password = serializers.CharField(max_length=25)
     confirm_password = serializers.CharField(max_length=25)
 
-    def validate(self, attrs):
+    def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         return self.validate_password_match(attrs)
 
-    def validate_email(self, email):
+    def validate_email(self, email: str) -> str:
         user = User.objects.filter(email=email)
         if user.exists():
             raise serializers.ValidationError(
@@ -69,7 +70,7 @@ class RegisterSerializer(PasswordValidationMixin, Serializer):
             )
         return email
 
-    def create(self, validated_data) -> User:
+    def create(self, validated_data: Dict[str, Any]) -> User:
         validated_data.pop("confirm_password", None)
         pwd = validated_data.get("password")
         validated_data["username"] = validated_data.get("email").strip().lower()
@@ -79,14 +80,14 @@ class RegisterSerializer(PasswordValidationMixin, Serializer):
         new_user.set_password(pwd)
         new_user.is_active = False
         new_user.save()
-        
+
         # Assign 'user' role by default
-        user_role, _ = Role.objects.get_or_create(name='user')
+        user_role, _ = Role.objects.get_or_create(name="user")
         UserProfile.objects.create(user=new_user, role=user_role)
-        
+
         return new_user
 
-    def save(self, **kwargs) -> User:
+    def save(self, **kwargs: Any) -> User:
         return self.create(self.validated_data)
 
 
@@ -94,7 +95,7 @@ class LoginSerialzier(Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(max_length=16)
 
-    def validate(self, attrs):
+    def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         email = attrs.get("email", "").strip()
         pwd = attrs.get("password").strip()
         user = get_object_or_none(User, email=email)
@@ -118,16 +119,16 @@ class ResetPasswordSerializer(PasswordValidationMixin, serializers.Serializer):
     password = serializers.CharField(max_length=16)
     confirm_password = serializers.CharField(max_length=16)
 
-    def validate_email(self, email):
+    def validate_email(self, email: str) -> str:
         user = User.objects.filter(email=email)
         if not user.exists():
             raise serializers.ValidationError(
                 {"error": errors.USER_404_ERROR}, code=400
             )
         return email
-    
-    def validate_old_new_password(attrs):
+
+    def validate_old_new_password(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         pass
 
-    def validate(self, attrs):
+    def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         return self.validate_password_match(attrs)
