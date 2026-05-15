@@ -31,6 +31,7 @@ urlpatterns = [
         include(
             [
                 path("auth/", include("apps.auth.urls")),
+                path("users/", include("apps.users.urls")),
                 path("messaging/", include("apps.messaging.urls")),
                 path("schema/", SpectacularAPIView.as_view(), name="schema"),
                 path(

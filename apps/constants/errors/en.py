@@ -27,4 +27,9 @@ USER_404_ERROR = "User Does not exist"
 INVALID_DETAILS = "email / password is incorrect"
 USER_INACTIVE = "user is inactive, visit activation page to activate your vedinka acount."
 
+# User Profile Errors
+PROFILE_NOT_FOUND = "User profile not found"
+INVALID_PHONE_NUMBER = "Invalid phone number format"
+DUPLICATE_PHONE_NUMBER = "Phone number already exists"
+
 # MAILING
