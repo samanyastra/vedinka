@@ -8,6 +8,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 env.read_env(BASE_DIR / '.env')
 
+# Storage configuration
+from vedinka.storage_config import (
+    get_storage_config,
+    get_static_and_media_urls,
+    get_static_and_media_roots,
+    STORAGE_BACKEND,
+)
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -112,7 +120,19 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = 'static/'
+#~~~ Storage Configuration ~~~
+# Set STORAGE_BACKEND in .env to one of: 'local' (default), 'azure', or 's3'
+
+STORAGES = get_storage_config(BASE_DIR)
+
+STATIC_URL, MEDIA_URL = get_static_and_media_urls(BASE_DIR)
+
+# Local storage roots (used only for 'local' backend)
+static_root, media_root = get_static_and_media_roots(BASE_DIR)
+if static_root:
+    STATIC_ROOT = static_root
+if media_root:
+    MEDIA_ROOT = media_root
 
 APPEND_SLASH=True
 
