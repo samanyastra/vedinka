@@ -55,8 +55,9 @@ def login(request):
     user = User.objects.get(email=user.data.get("email"))
     tokens = get_tokens_for_user(user=user)
     access, refresh = tokens["access"], tokens["refresh"]
+    role = user.profile.role.name if user.profile and user.profile.role else None
 
-    res = Response({"user": user.id, "vedinka_access": access})
+    res = Response({"user": user.id, "role": role, "vedinka_access": access})
     set_response_cookie(response=res, key="vedinka_refresh", value=refresh)
     return res
 
@@ -78,8 +79,9 @@ def refresh(request):
 
         access = new_tokens["access"]
         refresh = new_tokens["refresh"]
+        role = user.profile.role.name if user.profile and user.profile.role else None
 
-        res = Response({"user": user.id, "vedinka_access": access})
+        res = Response({"user": user.id, "role": role, "vedinka_access": access})
         set_response_cookie(response=res, key="vedinka_refresh", value=refresh)
 
         return res

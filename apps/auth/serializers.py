@@ -8,6 +8,7 @@ from apps.auth.models import TokenTypes
 from apps.constants.errors import en as errors
 from apps.constants.application import ACTIVATION_TOKEN_LENGTH
 from apps.common.utils import get_object_or_none
+from apps.users.models import UserProfile, Role
 
 User = get_user_model()
 
@@ -78,6 +79,11 @@ class RegisterSerializer(PasswordValidationMixin, Serializer):
         new_user.set_password(pwd)
         new_user.is_active = False
         new_user.save()
+        
+        # Assign 'user' role by default
+        user_role, _ = Role.objects.get_or_create(name='user')
+        UserProfile.objects.create(user=new_user, role=user_role)
+        
         return new_user
 
     def save(self, **kwargs) -> User:
