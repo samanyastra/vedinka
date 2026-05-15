@@ -103,7 +103,7 @@ def logout(request: Request) -> Response:
         raise ValidationError(errors.REFRESH_TOKEN_NOT_FOUND_ERROR, code=400)
     try:
         blacklist_token(refresh_token)
-        res = Response({"status": "success", "message": "Logged out successfully"})
+        res = Response({"status": "success", "message": msgs.LOGOUNT_SUCCESS})
         delete_response_cookie(response=res, key="vedinka_refresh")
 
         return res

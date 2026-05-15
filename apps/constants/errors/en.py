@@ -10,6 +10,7 @@ EMPTY_REFRESH_TOKEN_ERROR="Refresh token cannot be empty"
 INVALID_REFRESH_TOKEN = "Invalid refresh token"
 REFRESH_TOKEN_NOT_FOUND_ERROR = "Refresh token not found in cookies"
 FAILED_TO_BLACKLIST = "Failed to blacklist token: {0}"
+TOKEN_BLACKLIST_SUCCESS = "Token blacklisted successfully"
 
 
 # User Registration Errors
