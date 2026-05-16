@@ -6,11 +6,12 @@ from typing import Dict, Any
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, Serializer
 
-from apps.auth.models import TokenTypes
+from apps.auth.models import TokenTypes, ActivationTokens
 from apps.constants.errors import en as errors
-from apps.constants.application import ACTIVATION_TOKEN_LENGTH
 from apps.common.utils import get_object_or_none
 from apps.users.models import UserProfile, Role
+from apps.auth.utils import validate_activation_token
+from apps.constants.application import ACTIVATION_TOKEN_LENGTH
 
 User = get_user_model()
 
@@ -131,7 +132,17 @@ class ResetPasswordSerializer(PasswordValidationMixin, serializers.Serializer):
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         email = attrs.get('email')
         pwd = attrs.get('password', '').strip()
+        token = attrs.get('token', '')
+
         user = User.objects.get(email=email)
+
+        try: 
+            validate_activation_token(
+                token=token, token_type_str="retrive", user=user
+            )
+        except ActivationTokens.DoesNotExist as e:
+            raise serializers.ValidationError({"error": errors.INVALID_VERIFICAITON_LINK}, code=400)
+        
         if user.check_password(pwd):
             raise serializers.ValidationError(
                 {"error": errors.PASSWORD_SAME_AS_OLD}, code=400

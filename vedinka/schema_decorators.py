@@ -39,53 +39,48 @@ def document_api_view(
     Returns:
         Decorated function with Swagger documentation
     """
-    def decorator(func):
-        # Use provided response serializer or default to SuccessResponseSerializer
-        response_ser = response_serializer or SuccessResponseSerializer
-        
-        # Build responses dict
-        responses = {
-            status_code: OpenApiResponse(
-                response=response_ser,
-                description='Success response'
-            )
-        }
-        
-        # Add error responses
-        responses[status.HTTP_400_BAD_REQUEST] = OpenApiResponse(
-            response=ValidationErrorResponseSerializer,
-            description='Bad request - validation error'
-        )
-        
-        if auth_required:
-            responses[status.HTTP_401_UNAUTHORIZED] = OpenApiResponse(
-                response=ErrorResponseSerializer,
-                description='Unauthorized - authentication required'
-            )
-            responses[status.HTTP_403_FORBIDDEN] = OpenApiResponse(
-                response=ErrorResponseSerializer,
-                description='Forbidden - insufficient permissions'
-            )
-        
-        responses[status.HTTP_500_INTERNAL_SERVER_ERROR] = OpenApiResponse(
-            response=ErrorResponseSerializer,
-            description='Internal server error'
-        )
-        
-        # Apply extend_schema decorator
-        schema_decorator = extend_schema(
-            operation_id=operation_id,
-            summary=summary,
-            description=description,
-            request=request_serializer,
-            responses=responses,
-            tags=tags or ['Default'],
-            auth=None if not auth_required else ['Bearer'],
-        )
-        
-        return schema_decorator(func)
+    # Use provided response serializer or default to SuccessResponseSerializer
+    response_ser = response_serializer or SuccessResponseSerializer
     
-    return decorator
+    # Build responses dict
+    responses = {
+        status_code: OpenApiResponse(
+            response=response_ser,
+            description='Success response'
+        )
+    }
+    
+    # Add error responses
+    responses[status.HTTP_400_BAD_REQUEST] = OpenApiResponse(
+        response=ValidationErrorResponseSerializer,
+        description='Bad request - validation error'
+    )
+    
+    if auth_required:
+        responses[status.HTTP_401_UNAUTHORIZED] = OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description='Unauthorized - authentication required'
+        )
+        responses[status.HTTP_403_FORBIDDEN] = OpenApiResponse(
+            response=ErrorResponseSerializer,
+            description='Forbidden - insufficient permissions'
+        )
+    
+    responses[status.HTTP_500_INTERNAL_SERVER_ERROR] = OpenApiResponse(
+        response=ErrorResponseSerializer,
+        description='Internal server error'
+    )
+    
+    # Return extend_schema decorator directly
+    return extend_schema(
+        operation_id=operation_id,
+        summary=summary,
+        description=description,
+        request=request_serializer,
+        responses=responses,
+        tags=tags or ['Default'],
+        auth=['Bearer'] if auth_required else None,
+    )
 
 
 def document_list_endpoint(
@@ -181,7 +176,7 @@ def document_create_endpoint(
             ),
         },
         tags=tags or ['Default'],
-        auth=None,
+        auth=['Bearer'],
     )
 
 

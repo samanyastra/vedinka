@@ -24,6 +24,8 @@ from vedinka.schema_decorators import (
 User = get_user_model()
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 @document_api_view(
     operation_id='get_user_profile',
     summary='Get user profile',
@@ -31,8 +33,6 @@ User = get_user_model()
     response_serializer=UserProfileSerializer,
     tags=['Users'],
 )
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
 def get_user_profile(request: Request) -> Response:
     """Get current user's profile information."""
     try:
@@ -43,6 +43,8 @@ def get_user_profile(request: Request) -> Response:
         raise ValidationError({"error": errors.PROFILE_NOT_FOUND}, code=400)
 
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 @document_create_endpoint(
     operation_id='complete_user_profile',
     summary='Complete user profile',
@@ -51,8 +53,6 @@ def get_user_profile(request: Request) -> Response:
     response_serializer=ProfileResponseSerializer,
     tags=['Users'],
 )
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
 def complete_user_profile(request: Request) -> Response:
     """Complete user profile on first login."""
     try:
@@ -78,6 +78,8 @@ def complete_user_profile(request: Request) -> Response:
         raise ValidationError({"error": str(e)}, code=400)
 
 
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
 @document_update_endpoint(
     operation_id='update_user_profile',
     summary='Update user profile',
@@ -87,8 +89,6 @@ def complete_user_profile(request: Request) -> Response:
     tags=['Users'],
     partial=True,
 )
-@api_view(["PATCH"])
-@permission_classes([IsAuthenticated])
 def update_user_profile(request: Request) -> Response:
     """Update user profile information."""
     try:

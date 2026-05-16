@@ -7,6 +7,12 @@ from django.core.exceptions import ValidationError
 from apps.common.utils import get_object_or_none, create_rand_string
 from apps.common.models import TransactionStatus
 from apps.finance.models import Order, Payment
+from apps.constants.errors.en import (
+    INVALID_USER_ID,
+    LOCAL_ORDER_NOT_PREPARED,
+    INVALID_TRANSACTION_DATA,
+    GATEWAY_VERIFICATION_NOT_SUPPORTED,
+)
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -58,7 +64,7 @@ class TransactionHandler:
     def __get_user_info(self):
         self.user = get_object_or_none(User, id=self.user_id)
         if self.user is None:
-            raise ValidationError("Invalid user id")
+            raise ValidationError(INVALID_USER_ID)
         # prefer the UserProfile for relations used by finance models
         try:
             self.user_profile = self.user.profile
@@ -122,7 +128,7 @@ class TransactionHandler:
 
     def create_remote_transaction(self):
         if self.order is None:
-            raise ValidationError("Local order is not prepared")
+            raise ValidationError(LOCAL_ORDER_NOT_PREPARED)
 
         if self.order.client_order_id:
             # remote order already created
@@ -184,14 +190,14 @@ class TransactionHandler:
         # Basic validation of input keys
         required = {"razorpay_order_id", "razorpay_payment_id", "razorpay_signature"}
         if not required.issubset(set(checkout_data.keys())):
-            raise ValidationError("Invalid or incomplete checkout data")
+            raise ValidationError(INVALID_TRANSACTION_DATA)
 
         self.checkout_data = checkout_data
 
         if not self.client or not hasattr(
             self.client.utility, "verify_payment_signature"
         ):
-            raise RuntimeError("Gateway client does not support signature verification")
+            raise RuntimeError(GATEWAY_VERIFICATION_NOT_SUPPORTED)
 
         status = self.client.utility.verify_payment_signature(self.checkout_data)
         return status

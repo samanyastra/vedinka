@@ -42,3 +42,6 @@ gunicorn==21.2.0
 
 # Monitoring & Logging
 python-json-logger==2.0.7
+
+# Payment Gateway
+razorpay==1.4.1

@@ -48,6 +48,7 @@ from vedinka.schema_decorators import document_api_view, document_create_endpoin
 User = get_user_model()
 
 
+@api_view(["POST"])
 @document_create_endpoint(
     operation_id='register_user',
     summary='Register new user',
@@ -56,7 +57,6 @@ User = get_user_model()
     response_serializer=UserIdResponseSerializer,
     tags=['Authentication'],
 )
-@api_view(["POST"])
 def register_user(request: Request) -> Response:
     user_data = RegisterSerializer(data=request.data)
 
@@ -67,6 +67,7 @@ def register_user(request: Request) -> Response:
     return Response({"id": user.id})
 
 
+@api_view(["POST"])
 @document_api_view(
     operation_id='login_user',
     summary='User login',
@@ -76,7 +77,6 @@ def register_user(request: Request) -> Response:
     tags=['Authentication'],
     auth_required=False,
 )
-@api_view(["POST"])
 def login(request: Request) -> Response:
     user = LoginSerialzier(data=request.data)
 
@@ -92,6 +92,7 @@ def login(request: Request) -> Response:
     return res
 
 
+@api_view(["GET"])
 @document_api_view(
     operation_id='refresh_token',
     summary='Refresh access token',
@@ -100,7 +101,6 @@ def login(request: Request) -> Response:
     tags=['Authentication'],
     auth_required=False,
 )
-@api_view(["GET"])
 def refresh(request: Request) -> Response:
     refresh_token = request.COOKIES.get("vedinka_refresh")
     if not refresh_token:
@@ -131,6 +131,7 @@ def refresh(request: Request) -> Response:
         raise ValidationError(str(e), code=400)
 
 
+@api_view(["POST"])
 @document_api_view(
     operation_id='logout_user',
     summary='User logout',
@@ -139,7 +140,6 @@ def refresh(request: Request) -> Response:
     tags=['Authentication'],
     auth_required=False,
 )
-@api_view(["POST"])
 def logout(request: Request) -> Response:
     """Logout user by blacklisting refresh token and deleting cookie."""
     refresh_token = request.COOKIES.get("vedinka_refresh")
@@ -155,6 +155,7 @@ def logout(request: Request) -> Response:
         raise ValidationError(str(e), code=400)
 
 
+@api_view(["GET"])
 @document_api_view(
     operation_id='activate_user',
     summary='Activate user account',
@@ -163,7 +164,6 @@ def logout(request: Request) -> Response:
     tags=['Authentication'],
     auth_required=False,
 )
-@api_view(["GET"])
 def activate_user(request: Request) -> Response:
     token = request.GET.get("hint", "").strip()
 
@@ -186,9 +186,16 @@ def activate_user(request: Request) -> Response:
     profile.is_email_verified = True
     profile.save()
     user.save()
+    
+    # Mark token as expired after successful activation
+    token_obj.is_expired = True
+    token_obj.is_activated = True
+    token_obj.save()
+    
     return Response({"status": True})
 
 
+@api_view(["GET"])
 @document_api_view(
     operation_id='resend_activation_link',
     summary='Resend activation link',
@@ -197,7 +204,6 @@ def activate_user(request: Request) -> Response:
     tags=['Authentication'],
     auth_required=False,
 )
-@api_view(["GET"])
 def resend_activation_link(request: Request) -> Response:
     email = request.GET.get("email")
     s = EmailSerializer(data={"email": email})
@@ -230,6 +236,7 @@ def resend_activation_link(request: Request) -> Response:
     return Response({"status": True, "message": msgs.ACTIVATION_LINK_SENT})
 
 
+@api_view(["GET"])
 @document_api_view(
     operation_id='forgot_password',
     summary='Request password reset',
@@ -238,7 +245,6 @@ def resend_activation_link(request: Request) -> Response:
     tags=['Authentication'],
     auth_required=False,
 )
-@api_view(["GET"])
 def forgot_password(request: Request) -> Response:
     email = request.GET.get("email")
     s = EmailSerializer(data={"email": email})
@@ -255,16 +261,17 @@ def forgot_password(request: Request) -> Response:
         raise ValidationError({"error": errors.USER_INACTIVE})
 
     token = create_activation_token(user, "retrive_creds")
-    reset_link = create_activation_link(token, "retrive")
+    reset_link = create_activation_link(token, "retrive", path="reset-password")
     send_email.delay(
        FORGOT_PASSWORD_TEMPLATE_NAME,
         msgs.FORGOT_PASSWORD_SUBJECT,
         user.email,
         reset_link=reset_link,
     )
-    return Response({"status": True})
+    return Response({"status": True, 'message': msgs.PASSWORD_RESET_MAIL_SENT_SUCCESS})
 
 
+@api_view(["POST"])
 @document_api_view(
     operation_id='reset_password',
     summary='Reset user password',
@@ -274,7 +281,6 @@ def forgot_password(request: Request) -> Response:
     tags=['Authentication'],
     auth_required=False,
 )
-@api_view(["POST"])
 def reset_password(request: Request) -> Response:
 
     serializer = ResetPasswordSerializer(data=request.data)
@@ -283,19 +289,21 @@ def reset_password(request: Request) -> Response:
         raise ValidationError(serializer.errors, code=400)
 
     validated_data = serializer.data
-    email = validated_data.get("email")
-    token = validated_data.get("token")
+    email = validated_data.get("email", '')
+    token = validated_data.get("token", '')
 
     User = get_user_model()
     user = User.objects.get(email=email)
-    try: 
-        token_obj = validate_activation_token(
-            token=token, token_type_str="retrive", user=user
-        )
-    except ActivationTokens.DoesNotExist as e:
-        raise ValidationError({"error": errors.INVALID_VERIFICAITON_LINK}, code=400)
+    token_obj = validate_activation_token(
+        token=token, token_type_str="retrive", user=user
+    )
     
     user.set_password(validated_data.get('password'))
     user.save()
+    
+    # Mark token as expired after successful password reset
+    token_obj.is_expired = True
+    token_obj.save()
+    
     return Response({"status": True, "message": msgs.PASSWORD_SAVED})
 

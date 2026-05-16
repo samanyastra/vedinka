@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vedinka Invoice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+        }
+        
+        .email-container {
+            max-width: 700px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(122, 19, 84, 0.08);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #7A1354 0%, #6B0F45 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .header-title {
+            color: #F7F1F5;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        
+        .header-subtitle {
+            color: #EDEBE4;
+            font-size: 13px;
+            margin-top: 8px;
+            opacity: 0.9;
+            letter-spacing: 0.5px;
+        }
+        
+        .divider {
+            height: 3px;
+            background-color: #F7F1F5;
+            margin-top: 15px;
+            width: 60px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .content {
+            padding: 40px;
+            background-color: #ffffff;
+        }
+        
+        .invoice-header {
+            margin-bottom: 35px;
+        }
+        
+        .invoice-title {
+            color: #7A1354;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .invoice-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .invoice-label {
+            color: #74642F;
+            font-weight: 600;
+        }
+        
+        .invoice-value {
+            color: #333333;
+        }
+        
+        .customer-section {
+            margin-bottom: 35px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #F7F1F5;
+        }
+        
+        .section-title {
+            color: #7A1354;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        
+        .customer-info {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333333;
+        }
+        
+        .customer-info-label {
+            color: #74642F;
+            font-weight: 600;
+        }
+        
+        /* Items Table */
+        .items-section {
+            margin-bottom: 30px;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .items-table thead {
+            background-color: #F7F1F5;
+            border-bottom: 2px solid #EDEBE4;
+        }
+        
+        .items-table th {
+            padding: 12px 10px;
+            text-align: left;
+            color: #7A1354;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .items-table td {
+            padding: 14px 10px;
+            border-bottom: 1px solid #F7F1F5;
+            color: #333333;
+            font-size: 14px;
+        }
+        
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .item-name {
+            font-weight: 600;
+            color: #7A1354;
+        }
+        
+        .item-description {
+            font-size: 12px;
+            color: #74642F;
+            margin-top: 2px;
+        }
+        
+        .amount-right {
+            text-align: right;
+        }
+        
+        /* Charges Summary */
+        .charges-section {
+            margin: 35px 0;
+            padding: 20px;
+            background-color: #F7F1F5;
+            border-radius: 8px;
+        }
+        
+        .charge-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .charge-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .charge-label {
+            color: #333333;
+        }
+        
+        .charge-label.primary {
+            font-weight: 600;
+            color: #7A1354;
+        }
+        
+        .charge-amount {
+            text-align: right;
+            color: #333333;
+            min-width: 80px;
+        }
+        
+        .charge-amount.primary {
+            font-weight: 700;
+            color: #7A1354;
+            font-size: 16px;
+        }
+        
+        .charge-divider {
+            height: 1px;
+            background-color: #EDEBE4;
+            margin: 12px 0;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 700;
+            color: #7A1354;
+            padding-top: 12px;
+            border-top: 2px solid #EDEBE4;
+        }
+        
+        /* Additional Info */
+        .additional-info {
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #EDEBE4;
+            border-left: 4px solid #7A1354;
+            border-radius: 4px;
+        }
+        
+        .additional-info-title {
+            color: #7A1354;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .additional-info-text {
+            color: #333333;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        /* Payment Instructions */
+        .payment-section {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #F7F1F5;
+            border-radius: 8px;
+        }
+        
+        .payment-title {
+            color: #7A1354;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .payment-text {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        
+        .payment-status {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .payment-status.paid {
+            background-color: #E8F5E9;
+            color: #2E7D32;
+        }
+        
+        .payment-status.pending {
+            background-color: #FFF3E0;
+            color: #E65100;
+        }
+        
+        .footer {
+            background-color: #F7F1F5;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #EDEBE4;
+        }
+        
+        .footer-text {
+            color: #74642F;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .footer-brand {
+            color: #7A1354;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        
+        .social-links {
+            margin-top: 15px;
+        }
+        
+        .social-link {
+            display: inline-block;
+            margin: 0 8px;
+            color: #7A1354;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        .support-contact {
+            color: #74642F;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        @media only screen and (max-width: 700px) {
+            .content {
+                padding: 25px 20px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .footer {
+                padding: 20px 15px;
+            }
+            
+            .invoice-title {
+                font-size: 18px;
+            }
+            
+            .header-title {
+                font-size: 24px;
+            }
+            
+            .items-table {
+                font-size: 12px;
+            }
+            
+            .items-table th,
+            .items-table td {
+                padding: 10px 5px;
+            }
+            
+            .invoice-info-row {
+                flex-wrap: wrap;
+            }
+            
+            .charge-row {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="header-title">VEDINKA</h1>
+            <p class="header-subtitle">Transaction Invoice</p>
+            <div class="divider"></div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <!-- Invoice Header -->
+            <div class="invoice-header">
+                <div class="invoice-title">Invoice #{{ invoice_number }}</div>
+                <div class="invoice-info-row">
+                    <span class="invoice-label">Date:</span>
+                    <span class="invoice-value">{{ invoice_date }}</span>
+                </div>
+                <div class="invoice-info-row">
+                    <span class="invoice-label">Due Date:</span>
+                    <span class="invoice-value">{{ due_date }}</span>
+                </div>
+            </div>
+            
+            <!-- Customer Information -->
+            <div class="customer-section">
+                <div class="section-title">Bill To</div>
+                <div class="customer-info">
+                    <div>
+                        <span class="customer-info-label">Name:</span>
+                        <span>{{ customer_name }}</span>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <span class="customer-info-label">Email:</span>
+                        <span>{{ customer_email }}</span>
+                    </div>
+                    {% if customer_phone %}
+                    <div style="margin-top: 8px;">
+                        <span class="customer-info-label">Phone:</span>
+                        <span>{{ customer_phone }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Items/Services -->
+            <div class="items-section">
+                <div class="section-title">Order Details</div>
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th style="text-align: right;">Quantity</th>
+                            <th style="text-align: right;">Price</th>
+                            <th style="text-align: right;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>
+                                <div class="item-name">{{ item.name }}</div>
+                                {% if item.description %}
+                                <div class="item-description">{{ item.description }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="amount-right">{{ item.quantity }}</td>
+                            <td class="amount-right">{{ item.currency }}{{ item.unit_price }}</td>
+                            <td class="amount-right"><strong>{{ item.currency }}{{ item.amount }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Charges Breakdown -->
+            <div class="charges-section">
+                <div class="section-title" style="margin-bottom: 15px; color: #7A1354;">Charges Breakdown</div>
+                
+                <div class="charge-row">
+                    <span class="charge-label">Subtotal</span>
+                    <span class="charge-amount">{{ currency }}{{ subtotal }}</span>
+                </div>
+                
+                {% if platform_fee %}
+                <div class="charge-row">
+                    <span class="charge-label">Platform Fee</span>
+                    <span class="charge-amount">{{ currency }}{{ platform_fee }}</span>
+                </div>
+                {% endif %}
+                
+                {% if taxes %}
+                <div class="charge-row">
+                    <span class="charge-label">Taxes ({% if tax_percentage %}{{ tax_percentage }}%{% endif %})</span>
+                    <span class="charge-amount">{{ currency }}{{ taxes }}</span>
+                </div>
+                {% endif %}
+                
+                {% if discount %}
+                <div class="charge-row">
+                    <span class="charge-label">Discount{% if discount_code %} ({{ discount_code }}){% endif %}</span>
+                    <span class="charge-amount" style="color: #4CAF50;">-{{ currency }}{{ discount }}</span>
+                </div>
+                {% endif %}
+                
+                {% for charge in additional_charges %}
+                <div class="charge-row">
+                    <span class="charge-label">{{ charge.name }}</span>
+                    <span class="charge-amount">{{ currency }}{{ charge.amount }}</span>
+                </div>
+                {% endfor %}
+                
+                {% if platform_fee or taxes or discount or additional_charges %}
+                <div class="charge-divider"></div>
+                {% endif %}
+                
+                <div class="total-row">
+                    <span>Total Amount Due</span>
+                    <span>{{ currency }}{{ total_amount }}</span>
+                </div>
+            </div>
+            
+            <!-- Additional Notes -->
+            {% if notes %}
+            <div class="additional-info">
+                <div class="additional-info-title">Notes</div>
+                <div class="additional-info-text">{{ notes }}</div>
+            </div>
+            {% endif %}
+            
+            <!-- Payment Status / Instructions -->
+            <div class="payment-section">
+                <div class="payment-title">Payment Status</div>
+                {% if payment_status == 'paid' %}
+                <span class="payment-status paid">✓ Paid</span>
+                <div class="payment-text" style="margin-top: 12px;">
+                    Thank you for your payment! Your transaction has been completed successfully.
+                    {% if payment_date %}
+                    <br><strong>Payment Date:</strong> {{ payment_date }}
+                    {% endif %}
+                </div>
+                {% else %}
+                <span class="payment-status pending">● Pending</span>
+                <div class="payment-text" style="margin-top: 12px;">
+                    This invoice is awaiting payment. Please complete the payment to avoid any disruptions to your service.
+                    <br><br>
+                    <strong>Payment Method:</strong> {{ payment_method }}
+                    {% if payment_instructions %}
+                    <br><br>{{ payment_instructions }}
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Support Information -->
+            <div class="support-contact">
+                Have questions? Contact our support team at <strong>{{ support_email }}</strong> or visit our <a href="{{ support_url }}" style="color: #7A1354; text-decoration: none;">help center</a>.
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                This is an automated email. Please do not reply to this email. 
+                If you have any concerns, please contact our support team.
+            </p>
+            <p class="footer-brand">VEDINKA</p>
+            <div class="social-links">
+                <a href="#" class="social-link">Privacy</a>
+                <span style="color: #74642F;">•</span>
+                <a href="#" class="social-link">Terms</a>
+                <span style="color: #74642F;">•</span>
+                <a href="#" class="social-link">Contact</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

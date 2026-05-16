@@ -243,3 +243,7 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Kolkata'
 CELERY_BROKER_URL = f"amqp://{env('RABBITMQ_DEFAULT_USER', default='')}:{env('RABBITMQ_DEFAULT_PASS',default='')}@{env('CELERY_HOST', default='rabbitmq-mgmt')}//"
 print(CELERY_BROKER_URL)
+
+# Razorpay settings
+RAZORPAY_KEY_ID = env('RAZORPAY_KEY_ID', default='<razorpay_key_id>')
+RAZORPAY_KEY_SECRET = env('RAZORPAY_KEY_SECRET', default='<razorpay_key_secret>')

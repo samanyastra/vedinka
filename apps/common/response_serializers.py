@@ -50,12 +50,13 @@ class ResendActivationResponseSerializer(serializers.Serializer):
 class ProfileResponseSerializer(serializers.Serializer):
     """Response serializer for profile endpoints."""
     message = serializers.CharField()
-    profile = serializers.DictField()
+    profile = serializers.DictField(child=serializers.CharField(), required=False)
 
 
 class ErrorResponseSerializer(serializers.Serializer):
     """Generic error response serializer."""
-    error = serializers.CharField()
+    error = serializers.CharField(required=False)
+    detail = serializers.CharField(required=False)
 
 
 class ValidationErrorResponseSerializer(serializers.Serializer):
