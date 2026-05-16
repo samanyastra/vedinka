@@ -274,13 +274,13 @@ def forgot_password(request: Request) -> Response:
     tags=['Authentication'],
     auth_required=False,
 )
-@api_view(["GET"])
+@api_view(["POST"])
 def reset_password(request: Request) -> Response:
 
-    serializer = ResetPasswordSerializer(data=request.GET)
+    serializer = ResetPasswordSerializer(data=request.data)
 
     if not serializer.is_valid():
-        raise ValidationError({"error": errors.INVALID_DETAILS}, code=400)
+        raise ValidationError(serializer.errors, code=400)
 
     validated_data = serializer.data
     email = validated_data.get("email")
@@ -294,5 +294,8 @@ def reset_password(request: Request) -> Response:
         )
     except ActivationTokens.DoesNotExist as e:
         raise ValidationError({"error": errors.INVALID_VERIFICAITON_LINK}, code=400)
-
     
+    user.set_password(validated_data.get('password'))
+    user.save()
+    return Response({"status": True, "message": msgs.PASSWORD_SAVED})
+

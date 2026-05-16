@@ -17,6 +17,7 @@ class ActivationTokens(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.TextField()
     is_activated = models.BooleanField(default=False)
+    is_expired = models.BooleanField(default=False)
     token_type = models.ForeignKey(TokenTypes, on_delete=models.CASCADE, null=True, blank=True)
     
     def __str__(self) -> str:
