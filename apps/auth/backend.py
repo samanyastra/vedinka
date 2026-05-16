@@ -99,7 +99,7 @@ def blacklist_token(refresh_token):
             'message': errors.TOKEN_BLACKLIST_SUCCESS
         }
     except Exception as e:
-        raise AuthenticationFailed(errors.FAILED_TO_BLACKLIST.format(str(e))))
+        raise AuthenticationFailed(errors.FAILED_TO_BLACKLIST.format(str(e)))
 
 
 def create_activation_token(user, token_type_code: str):

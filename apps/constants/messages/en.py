@@ -10,3 +10,4 @@ LOGOUT_SUCCESS = "Logged out successfully"
 # USER PROFILE
 PROFILE_COMPLETED = "Profile completed successfully"
 PROFILE_UPDATED = "Profile updated successfully"
+ACTIVATION_LINK_SENT="Activation link sent to registered email."

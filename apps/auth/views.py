@@ -32,7 +32,9 @@ from apps.auth.backend import (
 )
 from apps.constants.errors import en as errors
 from apps.constants.messages import en as msgs
+from apps.constants.application import ACTIVATION_EMAIL_TEMPLATE_NAME
 from apps.messaging.smtp import send_email
+from apps.users.signals import handle_new_user
 
 User = get_user_model()
 
@@ -113,8 +115,34 @@ def logout(request: Request) -> Response:
 
 @api_view(["GET"])
 def resend_activation_link(request: Request) -> Response:
-    pass
-
+    email = request.GET.get("email")
+    user = get_object_or_none(User, email=email)
+    if user is None:
+        raise ValidationError({"error": errors.USER_404_ERROR})
+    
+    # Check if user is already activated
+    if user.is_active:
+        raise ValidationError({"error": errors.USER_ALREADY_ACTIVATED}, code=400)
+    
+    token_type, _ = TokenTypes.objects.get_or_create(
+        type_code="activate_user", token_type="activate"
+    )
+    
+    # Delete existing activation token if it exists
+    token_obj = get_object_or_none(ActivationTokens, user=user, token_type=token_type)
+    if token_obj:
+        token_obj.delete()
+    
+    # Create new activation token and send email
+    token = create_activation_token(user, "activate_user")
+    activation_link = create_activation_link(token, "hint")
+    send_email.delay(
+        ACTIVATION_EMAIL_TEMPLATE_NAME, 
+        msgs.ACTIVATION_MAIL_SUBJECT,
+        user.email,
+        activation_link=activation_link,
+    )
+    return Response({"status": True, "message": msgs.ACTIVATION_LINK_SENT})    
 
 @api_view(["GET"])
 def activate_user(request: Request) -> Response:
@@ -135,6 +163,7 @@ def activate_user(request: Request) -> Response:
         raise ValidationError({"error": errors.USER_ALREADY_ACTIVATED}, code=400)
 
     user.is_active = True
+    user.save()
     return Response({"status": True})
 
 
@@ -182,5 +211,3 @@ def reset_password(request: Request) -> Response:
     token_obj = validate_activation_token(
         token=token, token_type_str="retrive", user=user
     )
-    
-

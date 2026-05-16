@@ -9,6 +9,7 @@ from apps.auth.backend import create_activation_token
 from apps.auth.utils import create_activation_link
 
 from apps.messaging.smtp import send_email
+from apps.constants.application import ACTIVATION_EMAIL_TEMPLATE_NAME
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ def handle_new_user(user):
     activation_link = create_activation_link(token, "hint")
 
     send_email.delay(
-        "activation_mail",
+        ACTIVATION_EMAIL_TEMPLATE_NAME,
         messages.ACTIVATION_MAIL_SUBJECT,
         user.email,
         activation_link=activation_link,

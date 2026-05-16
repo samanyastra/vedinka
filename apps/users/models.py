@@ -106,12 +106,15 @@ class SubscriptionType(BaseModel):
     currency = models.CharField(max_length=10, default='INR')
     duration_in_days = models.IntegerField(help_text="Duration of subscription in days")
     created_at = models.DateTimeField(auto_now_add=True)
+    features = models.TextField(null=True)
     
     class Meta:
         ordering = ['cost']
     
     def __str__(self):
         return f"{self.name} - {self.cost} {self.currency}"
+    
+
 
 
 class UserSubscription(BaseModel):

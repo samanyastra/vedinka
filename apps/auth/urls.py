@@ -7,7 +7,8 @@ from apps.auth.views import (forgot_password, register_user,
                              refresh,
                              logout,
                              activate_user,
-                             forgot_password
+                             forgot_password, 
+                             resend_activation_link
                              )
 
 router = DefaultRouter()
@@ -20,6 +21,7 @@ urlpatterns = [
     path("refresh_auth", refresh, name="refresh"),
     path("logout", logout, name="logout"),
     path("activate", activate_user, name="activate user"),
+    path('resend-activation-mail', resend_activation_link, name="resend acitvation link"),
     path("forgot-password", forgot_password, name="forgot_password"),
     path('', include(router.urls)),
 ]
