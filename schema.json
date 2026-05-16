@@ -1,0 +1,1067 @@
+openapi: 3.0.3
+info:
+  title: Vedinka API
+  version: 1.0.0
+  description: A Place for authors to sell books at their own decision
+paths:
+  /api/auth/activate:
+    get:
+      operationId: activate_user
+      description: Activate user account using activation token from email
+      summary: Activate user account
+      tags:
+      - Authentication
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivationResponse'
+          description: Success response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: Bad request - validation error
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+  /api/auth/forgot-password:
+    get:
+      operationId: forgot_password
+      description: Send password reset link to user email
+      summary: Request password reset
+      tags:
+      - Authentication
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: Success response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: Bad request - validation error
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+  /api/auth/login:
+    post:
+      operationId: login_user
+      description: Authenticate user with email and password. Returns access token
+        and sets refresh token in cookie.
+      summary: User login
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginSerialzier'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginSerialzier'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginSerialzier'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: Success response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: Bad request - validation error
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+  /api/auth/logout:
+    post:
+      operationId: logout_user
+      description: Logout user by blacklisting refresh token
+      summary: User logout
+      tags:
+      - Authentication
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+          description: Success response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: Bad request - validation error
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+  /api/auth/refresh_auth:
+    get:
+      operationId: refresh_token
+      description: Generate new access token using refresh token from cookie
+      summary: Refresh access token
+      tags:
+      - Authentication
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+          description: Success response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: Bad request - validation error
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+  /api/auth/register:
+    post:
+      operationId: register_user
+      description: Create a new user account with email, password, and basic information
+      summary: Register new user
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserIdResponse'
+          description: Resource created successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: Validation error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+  /api/auth/resend-activation-mail:
+    get:
+      operationId: resend_activation_link
+      description: Resend activation link to user email if not already activated
+      summary: Resend activation link
+      tags:
+      - Authentication
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResendActivationResponse'
+          description: Success response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: Bad request - validation error
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+  /api/auth/reset-password:
+    get:
+      operationId: reset_password
+      description: Reset password using token from email
+      summary: Reset user password
+      tags:
+      - Authentication
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: Success response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: Bad request - validation error
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+  /api/auth/token-types/:
+    get:
+      operationId: auth_token_types_list
+      description: ViewSet for CRUD operations on MailTemplates.
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TokenTypeSerialzier'
+          description: ''
+    post:
+      operationId: auth_token_types_create
+      description: ViewSet for CRUD operations on MailTemplates.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenTypeSerialzier'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenTypeSerialzier'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenTypeSerialzier'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenTypeSerialzier'
+          description: ''
+  /api/auth/token-types/{id}/:
+    get:
+      operationId: auth_token_types_retrieve
+      description: ViewSet for CRUD operations on MailTemplates.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this token types.
+        required: true
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenTypeSerialzier'
+          description: ''
+    put:
+      operationId: auth_token_types_update
+      description: ViewSet for CRUD operations on MailTemplates.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this token types.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenTypeSerialzier'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenTypeSerialzier'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenTypeSerialzier'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenTypeSerialzier'
+          description: ''
+  /api/messaging/mail-templates/:
+    get:
+      operationId: messaging_mail_templates_list
+      description: ViewSet for CRUD operations on MailTemplates.
+      tags:
+      - messaging
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MailTemplates'
+          description: ''
+    post:
+      operationId: messaging_mail_templates_create
+      description: ViewSet for CRUD operations on MailTemplates.
+      tags:
+      - messaging
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MailTemplates'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MailTemplates'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MailTemplates'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailTemplates'
+          description: ''
+  /api/messaging/mail-templates/{id}/:
+    get:
+      operationId: messaging_mail_templates_retrieve
+      description: ViewSet for CRUD operations on MailTemplates.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this HTML Template.
+        required: true
+      tags:
+      - messaging
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailTemplates'
+          description: ''
+    put:
+      operationId: messaging_mail_templates_update
+      description: ViewSet for CRUD operations on MailTemplates.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this HTML Template.
+        required: true
+      tags:
+      - messaging
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MailTemplates'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MailTemplates'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MailTemplates'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailTemplates'
+          description: ''
+    patch:
+      operationId: messaging_mail_templates_partial_update
+      description: ViewSet for CRUD operations on MailTemplates.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this HTML Template.
+        required: true
+      tags:
+      - messaging
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMailTemplates'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMailTemplates'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMailTemplates'
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailTemplates'
+          description: ''
+    delete:
+      operationId: messaging_mail_templates_destroy
+      description: ViewSet for CRUD operations on MailTemplates.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this HTML Template.
+        required: true
+      tags:
+      - messaging
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/users/profile/:
+    get:
+      operationId: get_user_profile
+      description: Retrieve the authenticated user profile information
+      summary: Get user profile
+      tags:
+      - Users
+      security:
+      - Bearer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: Success response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: Bad request - validation error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized - authentication required
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden - insufficient permissions
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+  /api/users/profile/complete/:
+    post:
+      operationId: complete_user_profile
+      description: Complete user profile on first login with phone number and additional
+        information
+      summary: Complete user profile
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteUserProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CompleteUserProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CompleteUserProfile'
+        required: true
+      security:
+      - jwtAuth: []
+      - Bearer: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+          description: Resource created successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: Validation error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+  /api/users/profile/update/:
+    patch:
+      operationId: update_user_profile
+      description: Update user profile information with partial updates support
+      summary: Update user profile
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateUserProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateUserProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateUserProfile'
+      security:
+      - Bearer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+          description: Resource updated successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+          description: Validation error
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Not found
+components:
+  schemas:
+    ActivationResponse:
+      type: object
+      description: Response serializer for activation endpoint.
+      properties:
+        status:
+          type: boolean
+      required:
+      - status
+    CompleteUserProfile:
+      type: object
+      description: Serializer for completing user profile on first login.
+      properties:
+        phone_number:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+          maxLength: 500
+        tagline:
+          type: string
+          maxLength: 200
+        bio:
+          type: string
+        linkedin_url:
+          type: string
+          format: uri
+        other_social_url:
+          type: string
+          format: uri
+      required:
+      - phone_number
+    ErrorResponse:
+      type: object
+      description: Generic error response serializer.
+      properties:
+        error:
+          type: string
+      required:
+      - error
+    LoginResponse:
+      type: object
+      description: Response serializer for login endpoint.
+      properties:
+        user:
+          type: string
+          format: uuid
+        role:
+          type: string
+          nullable: true
+        vedinka_access:
+          type: string
+      required:
+      - role
+      - user
+      - vedinka_access
+    LoginSerialzier:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          maxLength: 16
+      required:
+      - email
+      - password
+    LogoutResponse:
+      type: object
+      description: Response serializer for logout endpoint.
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+      required:
+      - message
+      - status
+    MailTemplates:
+      type: object
+      description: Serializer for MailTemplates model with CRUD operations.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        template_name:
+          type: string
+          description: Unique identifier for the template
+          maxLength: 255
+        template_path:
+          type: string
+          description: File path to the HTML template file (relative to templates
+            directory)
+          maxLength: 500
+        description:
+          type: string
+          nullable: true
+          description: Description of what this template is used for
+        input_variable_values:
+          description: Default/example dictionary of input variables for template
+            rendering
+        is_active:
+          type: boolean
+          description: Whether this template is active and available for use
+      required:
+      - created_at
+      - id
+      - template_name
+      - template_path
+      - updated_at
+    PatchedMailTemplates:
+      type: object
+      description: Serializer for MailTemplates model with CRUD operations.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        template_name:
+          type: string
+          description: Unique identifier for the template
+          maxLength: 255
+        template_path:
+          type: string
+          description: File path to the HTML template file (relative to templates
+            directory)
+          maxLength: 500
+        description:
+          type: string
+          nullable: true
+          description: Description of what this template is used for
+        input_variable_values:
+          description: Default/example dictionary of input variables for template
+            rendering
+        is_active:
+          type: boolean
+          description: Whether this template is active and available for use
+    PatchedUpdateUserProfile:
+      type: object
+      description: Serializer for updating user profile information.
+      properties:
+        phone_number:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+          maxLength: 500
+        profile_photo_url:
+          type: string
+          format: uri
+        profile_photo_thumbnail_url:
+          type: string
+          format: uri
+        tagline:
+          type: string
+          maxLength: 200
+        bio:
+          type: string
+        linkedin_url:
+          type: string
+          format: uri
+        other_social_url:
+          type: string
+          format: uri
+    ProfileResponse:
+      type: object
+      description: Response serializer for profile endpoints.
+      properties:
+        message:
+          type: string
+        profile:
+          type: object
+          additionalProperties: {}
+      required:
+      - message
+      - profile
+    RefreshResponse:
+      type: object
+      description: Response serializer for refresh token endpoint.
+      properties:
+        user:
+          type: string
+          format: uuid
+        role:
+          type: string
+          nullable: true
+        vedinka_access:
+          type: string
+      required:
+      - role
+      - user
+      - vedinka_access
+    Register:
+      type: object
+      description: Reusable password validation logic for serializers.
+      properties:
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+          maxLength: 25
+        last_name:
+          type: string
+          maxLength: 25
+        password:
+          type: string
+          maxLength: 25
+        confirm_password:
+          type: string
+          maxLength: 25
+      required:
+      - confirm_password
+      - email
+      - first_name
+      - last_name
+      - password
+    ResendActivationResponse:
+      type: object
+      description: Response serializer for resend activation endpoint.
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+      required:
+      - message
+      - status
+    SuccessResponse:
+      type: object
+      description: Generic success response serializer.
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+      required:
+      - status
+    TokenTypeSerialzier:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        type_code:
+          type: string
+          maxLength: 20
+        token_type:
+          type: string
+          maxLength: 20
+      required:
+      - created_at
+      - id
+      - token_type
+      - type_code
+      - updated_at
+    UserIdResponse:
+      type: object
+      description: Response serializer for user ID.
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+      - id
+    UserProfile:
+      type: object
+      description: Serializer for complete user profile information.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_email:
+          type: string
+          readOnly: true
+        user_first_name:
+          type: string
+          readOnly: true
+        user_last_name:
+          type: string
+          readOnly: true
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 20
+        is_phone_verified:
+          type: boolean
+          readOnly: true
+        is_email_verified:
+          type: boolean
+          readOnly: true
+        address:
+          type: string
+          nullable: true
+        profile_photo_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        profile_photo_thumbnail_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        tagline:
+          type: string
+          nullable: true
+          maxLength: 200
+        bio:
+          type: string
+          nullable: true
+        linkedin_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        other_social_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        role_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - is_email_verified
+      - is_phone_verified
+      - role_name
+      - updated_at
+      - user_email
+      - user_first_name
+      - user_last_name
+    ValidationErrorResponse:
+      type: object
+      description: Validation error response serializer.
+      properties:
+        detail:
+          type: string
+        error:
+          type: string
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

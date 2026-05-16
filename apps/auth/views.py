@@ -1,13 +1,12 @@
-from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from typing import Dict, Any
 
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import AuthenticationFailed
 
@@ -19,6 +18,15 @@ from apps.auth.serializers import (
 from apps.auth.models import ActivationTokens, TokenTypes
 from apps.auth.utils import create_activation_link, validate_activation_token
 from apps.common.serializers import EmailSerializer
+from apps.common.response_serializers import (
+    UserIdResponseSerializer,
+    LoginResponseSerializer,
+    RefreshResponseSerializer,
+    LogoutResponseSerializer,
+    ActivationResponseSerializer,
+    ResendActivationResponseSerializer,
+    SuccessResponseSerializer,
+)
 from apps.common.utils import (
     set_response_cookie,
     delete_response_cookie,
@@ -32,13 +40,20 @@ from apps.auth.backend import (
 )
 from apps.constants.errors import en as errors
 from apps.constants.messages import en as msgs
-from apps.constants.application import ACTIVATION_EMAIL_TEMPLATE_NAME
 from apps.messaging.smtp import send_email
-from apps.users.signals import handle_new_user
+from vedinka.schema_decorators import document_api_view, document_create_endpoint
 
 User = get_user_model()
 
 
+@document_create_endpoint(
+    operation_id='register_user',
+    summary='Register new user',
+    description='Create a new user account with email, password, and basic information',
+    request_serializer=RegisterSerializer,
+    response_serializer=UserIdResponseSerializer,
+    tags=['Authentication'],
+)
 @api_view(["POST"])
 def register_user(request: Request) -> Response:
     user_data = RegisterSerializer(data=request.data)
@@ -50,6 +65,15 @@ def register_user(request: Request) -> Response:
     return Response({"id": user.id})
 
 
+@document_api_view(
+    operation_id='login_user',
+    summary='User login',
+    description='Authenticate user with email and password. Returns access token and sets refresh token in cookie.',
+    request_serializer=LoginSerialzier,
+    response_serializer=LoginResponseSerializer,
+    tags=['Authentication'],
+    auth_required=False,
+)
 @api_view(["POST"])
 def login(request: Request) -> Response:
     user = LoginSerialzier(data=request.data)
@@ -66,6 +90,14 @@ def login(request: Request) -> Response:
     return res
 
 
+@document_api_view(
+    operation_id='refresh_token',
+    summary='Refresh access token',
+    description='Generate new access token using refresh token from cookie',
+    response_serializer=RefreshResponseSerializer,
+    tags=['Authentication'],
+    auth_required=False,
+)
 @api_view(["GET"])
 def refresh(request: Request) -> Response:
     refresh_token = request.COOKIES.get("vedinka_refresh")
@@ -97,6 +129,14 @@ def refresh(request: Request) -> Response:
         raise ValidationError(str(e), code=400)
 
 
+@document_api_view(
+    operation_id='logout_user',
+    summary='User logout',
+    description='Logout user by blacklisting refresh token',
+    response_serializer=LogoutResponseSerializer,
+    tags=['Authentication'],
+    auth_required=False,
+)
 @api_view(["POST"])
 def logout(request: Request) -> Response:
     """Logout user by blacklisting refresh token and deleting cookie."""
@@ -113,37 +153,14 @@ def logout(request: Request) -> Response:
         raise ValidationError(str(e), code=400)
 
 
-@api_view(["GET"])
-def resend_activation_link(request: Request) -> Response:
-    email = request.GET.get("email")
-    user = get_object_or_none(User, email=email)
-    if user is None:
-        raise ValidationError({"error": errors.USER_404_ERROR})
-    
-    # Check if user is already activated
-    if user.is_active:
-        raise ValidationError({"error": errors.USER_ALREADY_ACTIVATED}, code=400)
-    
-    token_type, _ = TokenTypes.objects.get_or_create(
-        type_code="activate_user", token_type="activate"
-    )
-    
-    # Delete existing activation token if it exists
-    token_obj = get_object_or_none(ActivationTokens, user=user, token_type=token_type)
-    if token_obj:
-        token_obj.delete()
-    
-    # Create new activation token and send email
-    token = create_activation_token(user, "activate_user")
-    activation_link = create_activation_link(token, "hint")
-    send_email.delay(
-        ACTIVATION_EMAIL_TEMPLATE_NAME, 
-        msgs.ACTIVATION_MAIL_SUBJECT,
-        user.email,
-        activation_link=activation_link,
-    )
-    return Response({"status": True, "message": msgs.ACTIVATION_LINK_SENT})    
-
+@document_api_view(
+    operation_id='activate_user',
+    summary='Activate user account',
+    description='Activate user account using activation token from email',
+    response_serializer=ActivationResponseSerializer,
+    tags=['Authentication'],
+    auth_required=False,
+)
 @api_view(["GET"])
 def activate_user(request: Request) -> Response:
     token = request.GET.get("hint", "").strip()
@@ -167,6 +184,55 @@ def activate_user(request: Request) -> Response:
     return Response({"status": True})
 
 
+@document_api_view(
+    operation_id='resend_activation_link',
+    summary='Resend activation link',
+    description='Resend activation link to user email if not already activated',
+    response_serializer=ResendActivationResponseSerializer,
+    tags=['Authentication'],
+    auth_required=False,
+)
+@api_view(["GET"])
+def resend_activation_link(request: Request) -> Response:
+    email = request.GET.get("email")
+    s = EmailSerializer(data={"email": email})
+    if not s.is_valid():
+        raise ValidationError({"error": errors.INVALID_EMAIL})
+    
+    user = get_object_or_none(User, email=email)
+    if user is None:
+        raise ValidationError({"error": errors.USER_404_ERROR})
+    
+    if user.is_active:
+        raise ValidationError({"error": errors.USER_ALREADY_ACTIVATED}, code=400)
+    
+    token_type, _ = TokenTypes.objects.get_or_create(
+        type_code="activate_user", token_type="activate"
+    )
+    
+    token_obj = get_object_or_none(ActivationTokens, user=user, token_type=token_type)
+    if token_obj:
+        token_obj.delete()
+    
+    token = create_activation_token(user, "activate_user")
+    activation_link = create_activation_link(token, "hint")
+    send_email.delay(
+        "activation_email",
+        msgs.ACTIVATION_MAIL_SUBJECT,
+        user.email,
+        activation_link=activation_link,
+    )
+    return Response({"status": True, "message": msgs.ACTIVATION_LINK_SENT})
+
+
+@document_api_view(
+    operation_id='forgot_password',
+    summary='Request password reset',
+    description='Send password reset link to user email',
+    response_serializer=SuccessResponseSerializer,
+    tags=['Authentication'],
+    auth_required=False,
+)
 @api_view(["GET"])
 def forgot_password(request: Request) -> Response:
     email = request.GET.get("email")
@@ -194,6 +260,15 @@ def forgot_password(request: Request) -> Response:
     return Response({"status": True})
 
 
+@document_api_view(
+    operation_id='reset_password',
+    summary='Reset user password',
+    description='Reset password using token from email',
+    request_serializer=ResetPasswordSerializer,
+    response_serializer=SuccessResponseSerializer,
+    tags=['Authentication'],
+    auth_required=False,
+)
 @api_view(["GET"])
 def reset_password(request: Request) -> Response:
 

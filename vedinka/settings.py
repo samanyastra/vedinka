@@ -152,7 +152,30 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'A Place for authors to sell books at their own decision',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
-    # OTHER SETTINGS
+    'SCHEMA_PATH_PREFIX': '/api/',
+    'AUTHENTICATION_FLOWS': {
+        'bearer': {
+            'type': 'http',
+            'scheme': 'bearer',
+            'bearerFormat': 'JWT',
+        },
+    },
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+        }
+    },
+    'SECURITY': [
+        {'Bearer': []}
+    ],
+    'POSTPROCESSING_HOOKS': [
+        'vedinka.schema_hooks.postprocess_schema_enums',
+    ],
+    'ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE': False,
+    'SORT_OPERATION_PARAMETERS': True,
+    'SORT_SECURITY_SCHEMES': True,
 }
 
 #~~~ JWT Configuration (Django Simple JWT) ~~~~~

@@ -11,13 +11,26 @@ from apps.users.serializers import (
     CompleteUserProfileSerializer,
     UpdateUserProfileSerializer,
 )
+from apps.common.response_serializers import ProfileResponseSerializer
 from apps.constants.errors import en as errors
 from apps.constants.messages import en as msgs
 from apps.common.utils import get_object_or_none
+from vedinka.schema_decorators import (
+    document_api_view,
+    document_create_endpoint,
+    document_update_endpoint,
+)
 
 User = get_user_model()
 
 
+@document_api_view(
+    operation_id='get_user_profile',
+    summary='Get user profile',
+    description='Retrieve the authenticated user profile information',
+    response_serializer=UserProfileSerializer,
+    tags=['Users'],
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_user_profile(request: Request) -> Response:
@@ -30,6 +43,14 @@ def get_user_profile(request: Request) -> Response:
         raise ValidationError({"error": errors.PROFILE_NOT_FOUND}, code=400)
 
 
+@document_create_endpoint(
+    operation_id='complete_user_profile',
+    summary='Complete user profile',
+    description='Complete user profile on first login with phone number and additional information',
+    request_serializer=CompleteUserProfileSerializer,
+    response_serializer=ProfileResponseSerializer,
+    tags=['Users'],
+)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def complete_user_profile(request: Request) -> Response:
@@ -57,6 +78,15 @@ def complete_user_profile(request: Request) -> Response:
         raise ValidationError({"error": str(e)}, code=400)
 
 
+@document_update_endpoint(
+    operation_id='update_user_profile',
+    summary='Update user profile',
+    description='Update user profile information with partial updates support',
+    request_serializer=UpdateUserProfileSerializer,
+    response_serializer=ProfileResponseSerializer,
+    tags=['Users'],
+    partial=True,
+)
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_user_profile(request: Request) -> Response:
