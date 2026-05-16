@@ -1,3 +1,4 @@
+import attr
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password as dj_validate_pwd
 from typing import Dict, Any
@@ -127,8 +128,12 @@ class ResetPasswordSerializer(PasswordValidationMixin, serializers.Serializer):
             )
         return email
 
-    def validate_old_new_password(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
-        pass
-
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
+        email = attrs.get('email')
+        pwd = attrs.get('password', '').strip()
+        user = User.objects.get(email=email)
+        if user.check_password(pwd):
+            raise serializers.ValidationError(
+                {"error": errors.PASSWORD_SAME_AS_OLD}, code=400
+            )
         return self.validate_password_match(attrs)

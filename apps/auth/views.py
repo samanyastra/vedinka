@@ -40,7 +40,9 @@ from apps.auth.backend import (
 )
 from apps.constants.errors import en as errors
 from apps.constants.messages import en as msgs
+from apps.constants.application import FORGOT_PASSWORD_TEMPLATE_NAME
 from apps.messaging.smtp import send_email
+from apps.users.models import UserProfile
 from vedinka.schema_decorators import document_api_view, document_create_endpoint
 
 User = get_user_model()
@@ -180,6 +182,9 @@ def activate_user(request: Request) -> Response:
         raise ValidationError({"error": errors.USER_ALREADY_ACTIVATED}, code=400)
 
     user.is_active = True
+    profile = UserProfile.objects.get(user=user)
+    profile.is_email_verified = True
+    profile.save()
     user.save()
     return Response({"status": True})
 
@@ -252,7 +257,7 @@ def forgot_password(request: Request) -> Response:
     token = create_activation_token(user, "retrive_creds")
     reset_link = create_activation_link(token, "retrive")
     send_email.delay(
-        "forgot_password",
+       FORGOT_PASSWORD_TEMPLATE_NAME,
         msgs.FORGOT_PASSWORD_SUBJECT,
         user.email,
         reset_link=reset_link,
@@ -283,6 +288,11 @@ def reset_password(request: Request) -> Response:
 
     User = get_user_model()
     user = User.objects.get(email=email)
-    token_obj = validate_activation_token(
-        token=token, token_type_str="retrive", user=user
-    )
+    try: 
+        token_obj = validate_activation_token(
+            token=token, token_type_str="retrive", user=user
+        )
+    except ActivationTokens.DoesNotExist as e:
+        raise ValidationError({"error": errors.INVALID_VERIFICAITON_LINK}, code=400)
+
+    

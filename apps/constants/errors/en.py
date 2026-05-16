@@ -4,6 +4,8 @@ INVALID_UUID = 'Invalid id provided.'
 INVALID_EMAIL = "Email provided is invalid."
 GENERIC_INVALID_DETAILS = "Invalid Details Provided"
 
+PASSWORD_SAME_AS_OLD="Password cannot be same as old password!"
+
 
 # Token errors
 EMPTY_REFRESH_TOKEN_ERROR="Refresh token cannot be empty"
