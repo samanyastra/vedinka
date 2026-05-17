@@ -33,6 +33,8 @@ urlpatterns = [
                 path("auth/", include("apps.auth.urls")),
                 path("users/", include("apps.users.urls")),
                 path("messaging/", include("apps.messaging.urls")),
+                # subscriptions
+                path("subscriptions/", include("apps.users.subscription_urls")),
                 path("schema/", SpectacularAPIView.as_view(), name="schema"),
                 path(
                     "swagger-ui/",

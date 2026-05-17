@@ -85,16 +85,11 @@ def get_subscription_type(request: Request, subscription_id: str) -> Response:
 
 @api_view(["POST"])
 @permission_classes([IsSuperUserOrAdmin])
-@document_create_endpoint(
-    operation_id='create_subscription_type',
-    summary='Create subscription type',
-    description='Create a new subscription type (Admin only)',
-    request_serializer=CreateSubscriptionTypeSerializer,
-    response_serializer=SubscriptionTypeSerializer,
-    tags=['Subscriptions - Admin'],
-)
 def create_subscription_type(request: Request) -> Response:
-    """Create new subscription type."""
+    """Create new subscription type.
+    
+    Only POST method is allowed; other methods return 405 Method Not Allowed.
+    """
     serializer = CreateSubscriptionTypeSerializer(data=request.data)
     if not serializer.is_valid():
         raise ValidationError(serializer.errors, code=400)
