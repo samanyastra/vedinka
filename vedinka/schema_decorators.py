@@ -177,6 +177,7 @@ def document_create_endpoint(
         },
         tags=tags or ['Default'],
         auth=['Bearer'],
+        methods=['POST'],
     )
 
 
@@ -233,6 +234,7 @@ def document_update_endpoint(
         },
         tags=tags or ['Default'],
         auth=['Bearer'],
+        methods=['PATCH'],
     )
 
 

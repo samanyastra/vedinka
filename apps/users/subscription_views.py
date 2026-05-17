@@ -21,12 +21,7 @@ from apps.users.subscription_serializers import (
 from apps.common.response_serializers import SuccessResponseSerializer
 from apps.auth.permissions import IsSuperUserOrAdmin
 from apps.common.utils import get_object_or_none
-from vedinka.schema_decorators import (
-    document_api_view,
-    document_create_endpoint,
-    document_update_endpoint,
-    document_list_endpoint,
-)
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 
 def check_admin_permission(request: Request) -> None:
@@ -50,11 +45,11 @@ def check_admin_permission(request: Request) -> None:
 
 @api_view(["GET"])
 @permission_classes([IsSuperUserOrAdmin])
-@document_list_endpoint(
+@extend_schema(
     operation_id='list_subscription_types',
     summary='List all subscription types',
     description='Get all available subscription types (Admin only)',
-    response_serializer=SubscriptionTypeSerializer,
+    responses={200: SubscriptionTypeSerializer(many=True)},
     tags=['Subscriptions - Admin'],
 )
 def list_subscription_types(request: Request) -> Response:
@@ -66,11 +61,11 @@ def list_subscription_types(request: Request) -> Response:
 
 @api_view(["GET"])
 @permission_classes([IsSuperUserOrAdmin])
-@document_api_view(
+@extend_schema(
     operation_id='get_subscription_type',
     summary='Get subscription type details',
     description='Get details of a specific subscription type (Admin only)',
-    response_serializer=SubscriptionTypeSerializer,
+    responses={200: SubscriptionTypeSerializer},
     tags=['Subscriptions - Admin'],
 )
 def get_subscription_type(request: Request, subscription_id: str) -> Response:
@@ -83,13 +78,18 @@ def get_subscription_type(request: Request, subscription_id: str) -> Response:
     return Response(serializer.data)
 
 
+@extend_schema(
+    operation_id='create_subscription_type',
+    summary='Create subscription type',
+    description='Create a new subscription type (Admin only)',
+    request=CreateSubscriptionTypeSerializer,
+    responses={201: SubscriptionTypeSerializer},
+    tags=['Subscriptions - Admin'],
+)
 @api_view(["POST"])
 @permission_classes([IsSuperUserOrAdmin])
 def create_subscription_type(request: Request) -> Response:
-    """Create new subscription type.
-    
-    Only POST method is allowed; other methods return 405 Method Not Allowed.
-    """
+    """Create new subscription type."""
     serializer = CreateSubscriptionTypeSerializer(data=request.data)
     if not serializer.is_valid():
         raise ValidationError(serializer.errors, code=400)
@@ -99,17 +99,16 @@ def create_subscription_type(request: Request) -> Response:
     return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
-@api_view(["PATCH"])
-@permission_classes([IsSuperUserOrAdmin])
-@document_update_endpoint(
+@extend_schema(
     operation_id='update_subscription_type',
     summary='Update subscription type',
     description='Update an existing subscription type (Admin only)',
-    request_serializer=UpdateSubscriptionTypeSerializer,
-    response_serializer=SubscriptionTypeSerializer,
+    request=UpdateSubscriptionTypeSerializer,
+    responses={200: SubscriptionTypeSerializer},
     tags=['Subscriptions - Admin'],
-    partial=True,
 )
+@api_view(["PATCH"])
+@permission_classes([IsSuperUserOrAdmin])
 def update_subscription_type(request: Request, subscription_id: str) -> Response:
     """Update subscription type."""
     subscription = get_object_or_none(SubscriptionType, id=subscription_id)
@@ -130,11 +129,11 @@ def update_subscription_type(request: Request, subscription_id: str) -> Response
 
 @api_view(["DELETE"])
 @permission_classes([IsSuperUserOrAdmin])
-@document_api_view(
+@extend_schema(
     operation_id='delete_subscription_type',
     summary='Delete subscription type',
     description='Delete a subscription type (Admin only)',
-    response_serializer=SuccessResponseSerializer,
+    responses={200: SuccessResponseSerializer},
     tags=['Subscriptions - Admin'],
 )
 def delete_subscription_type(request: Request, subscription_id: str) -> Response:
@@ -153,11 +152,11 @@ def delete_subscription_type(request: Request, subscription_id: str) -> Response
 
 @api_view(["GET"])
 @permission_classes([IsSuperUserOrAdmin])
-@document_list_endpoint(
+@extend_schema(
     operation_id='list_user_subscriptions',
     summary='List all user subscriptions',
     description='Get all user subscriptions (Admin only)',
-    response_serializer=UserSubscriptionSerializer,
+    responses={200: UserSubscriptionSerializer(many=True)},
     tags=['Subscriptions - Admin'],
 )
 def list_user_subscriptions(request: Request) -> Response:
@@ -169,11 +168,11 @@ def list_user_subscriptions(request: Request) -> Response:
 
 @api_view(["GET"])
 @permission_classes([IsSuperUserOrAdmin])
-@document_api_view(
+@extend_schema(
     operation_id='get_user_subscription',
     summary='Get user subscription details',
     description='Get details of a specific user subscription (Admin only)',
-    response_serializer=UserSubscriptionSerializer,
+    responses={200: UserSubscriptionSerializer},
     tags=['Subscriptions - Admin'],
 )
 def get_user_subscription(request: Request, subscription_id: str) -> Response:
@@ -186,16 +185,16 @@ def get_user_subscription(request: Request, subscription_id: str) -> Response:
     return Response(serializer.data)
 
 
-@api_view(["POST"])
-@permission_classes([IsSuperUserOrAdmin])
-@document_create_endpoint(
+@extend_schema(
     operation_id='assign_subscription_to_user',
     summary='Assign subscription to user',
     description='Assign a subscription type to a user (Admin only)',
-    request_serializer=CreateUserSubscriptionSerializer,
-    response_serializer=UserSubscriptionSerializer,
+    request=CreateUserSubscriptionSerializer,
+    responses={201: UserSubscriptionSerializer},
     tags=['Subscriptions - Admin'],
 )
+@api_view(["POST"])
+@permission_classes([IsSuperUserOrAdmin])
 def assign_subscription_to_user(request: Request) -> Response:
     """Assign subscription to user."""
     serializer = CreateUserSubscriptionSerializer(data=request.data)
@@ -207,17 +206,16 @@ def assign_subscription_to_user(request: Request) -> Response:
     return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
-@api_view(["PATCH"])
-@permission_classes([IsSuperUserOrAdmin])
-@document_update_endpoint(
+@extend_schema(
     operation_id='update_user_subscription',
     summary='Update user subscription',
     description='Update a user subscription (Admin only)',
-    request_serializer=UpdateUserSubscriptionSerializer,
-    response_serializer=UserSubscriptionSerializer,
+    request=UpdateUserSubscriptionSerializer,
+    responses={200: UserSubscriptionSerializer},
     tags=['Subscriptions - Admin'],
-    partial=True,
 )
+@api_view(["PATCH"])
+@permission_classes([IsSuperUserOrAdmin])
 def update_user_subscription(request: Request, subscription_id: str) -> Response:
     """Update user subscription."""
     subscription = get_object_or_none(UserSubscription, id=subscription_id)
@@ -235,11 +233,11 @@ def update_user_subscription(request: Request, subscription_id: str) -> Response
 
 @api_view(["DELETE"])
 @permission_classes([IsSuperUserOrAdmin])
-@document_api_view(
+@extend_schema(
     operation_id='delete_user_subscription',
     summary='Delete user subscription',
     description='Delete a user subscription (Admin only)',
-    response_serializer=SuccessResponseSerializer,
+    responses={200: SuccessResponseSerializer},
     tags=['Subscriptions - Admin'],
 )
 def delete_user_subscription(request: Request, subscription_id: str) -> Response:
