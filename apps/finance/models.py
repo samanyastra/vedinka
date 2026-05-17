@@ -165,3 +165,69 @@ class Ledger(BaseModel):
     
     def __str__(self):
         return f"Ledger {self.id} - {self.user.user.username}"
+
+
+class BookSalesMetrics(BaseModel):
+    """Monthly sales metrics per book"""
+    book = models.ForeignKey(
+        'content.Book',
+        on_delete=models.CASCADE,
+        related_name='sales_metrics'
+    )
+    month = models.DateField(help_text="First day of the month (YYYY-MM-01)")
+    sales_count = models.IntegerField(default=0, help_text="Number of units sold")
+    revenue = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        help_text="Total revenue from sales"
+    )
+    average_rating = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Average rating for this month"
+    )
+    views_count = models.IntegerField(default=0, help_text="Page views for this month")
+    
+    class Meta:
+        ordering = ['-month']
+        unique_together = ('book', 'month')
+        indexes = [
+            models.Index(fields=['book', '-month']),
+            models.Index(fields=['-month']),
+        ]
+    
+    def __str__(self):
+        return f"{self.book.title} - {self.month.strftime('%B %Y')} ({self.sales_count} sales)"
+
+
+class AuthorSalesMetrics(BaseModel):
+    """Monthly sales metrics per author"""
+    author = models.ForeignKey(
+        'users.UserProfile',
+        on_delete=models.CASCADE,
+        related_name='author_sales_metrics'
+    )
+    month = models.DateField(help_text="First day of the month (YYYY-MM-01)")
+    total_sales_count = models.IntegerField(default=0, help_text="Total units sold")
+    total_revenue = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        help_text="Total revenue from all books"
+    )
+    book_count = models.IntegerField(default=0, help_text="Number of unique books sold")
+    total_views = models.IntegerField(default=0, help_text="Total page views")
+    
+    class Meta:
+        ordering = ['-month']
+        unique_together = ('author', 'month')
+        indexes = [
+            models.Index(fields=['author', '-month']),
+            models.Index(fields=['-month']),
+        ]
+    
+    def __str__(self):
+        return f"{self.author.user.username} - {self.month.strftime('%B %Y')} ({self.total_sales_count} sales)"

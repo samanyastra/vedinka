@@ -43,20 +43,21 @@ from apps.constants.messages import en as msgs
 from apps.constants.application import FORGOT_PASSWORD_TEMPLATE_NAME
 from apps.messaging.smtp import send_email
 from apps.users.models import UserProfile
-from vedinka.schema_decorators import document_api_view, document_create_endpoint
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 User = get_user_model()
 
 
-@api_view(["POST"])
-@document_create_endpoint(
+@extend_schema(
     operation_id='register_user',
     summary='Register new user',
     description='Create a new user account with email, password, and basic information',
-    request_serializer=RegisterSerializer,
-    response_serializer=UserIdResponseSerializer,
+    request=RegisterSerializer,
+    responses={200: UserIdResponseSerializer},
     tags=['Authentication'],
 )
+@api_view(["POST"])
 def register_user(request: Request) -> Response:
     user_data = RegisterSerializer(data=request.data)
 
@@ -67,16 +68,15 @@ def register_user(request: Request) -> Response:
     return Response({"id": user.id})
 
 
-@api_view(["POST"])
-@document_api_view(
+@extend_schema(
     operation_id='login_user',
     summary='User login',
     description='Authenticate user with email and password. Returns access token and sets refresh token in cookie.',
-    request_serializer=LoginSerialzier,
-    response_serializer=LoginResponseSerializer,
+    request=LoginSerialzier,
+    responses={200: LoginResponseSerializer},
     tags=['Authentication'],
-    auth_required=False,
 )
+@api_view(["POST"])
 def login(request: Request) -> Response:
     user = LoginSerialzier(data=request.data)
 
@@ -92,15 +92,14 @@ def login(request: Request) -> Response:
     return res
 
 
-@api_view(["GET"])
-@document_api_view(
+@extend_schema(
     operation_id='refresh_token',
     summary='Refresh access token',
     description='Generate new access token using refresh token from cookie',
-    response_serializer=RefreshResponseSerializer,
+    responses={200: RefreshResponseSerializer},
     tags=['Authentication'],
-    auth_required=False,
 )
+@api_view(["GET"])
 def refresh(request: Request) -> Response:
     refresh_token = request.COOKIES.get("vedinka_refresh")
     if not refresh_token:
@@ -131,15 +130,15 @@ def refresh(request: Request) -> Response:
         raise ValidationError(str(e), code=400)
 
 
-@api_view(["POST"])
-@document_api_view(
+@extend_schema(
     operation_id='logout_user',
     summary='User logout',
     description='Logout user by blacklisting refresh token',
-    response_serializer=LogoutResponseSerializer,
+    request=None,
+    responses={200: LogoutResponseSerializer},
     tags=['Authentication'],
-    auth_required=False,
 )
+@api_view(["POST"])
 def logout(request: Request) -> Response:
     """Logout user by blacklisting refresh token and deleting cookie."""
     refresh_token = request.COOKIES.get("vedinka_refresh")
@@ -155,15 +154,23 @@ def logout(request: Request) -> Response:
         raise ValidationError(str(e), code=400)
 
 
-@api_view(["GET"])
-@document_api_view(
+@extend_schema(
     operation_id='activate_user',
     summary='Activate user account',
     description='Activate user account using activation token from email',
-    response_serializer=ActivationResponseSerializer,
+    parameters=[
+        OpenApiParameter(
+            name='hint',
+            description='Activation token from email',
+            required=True,
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+        )
+    ],
+    responses={200: ActivationResponseSerializer},
     tags=['Authentication'],
-    auth_required=False,
 )
+@api_view(["GET"])
 def activate_user(request: Request) -> Response:
     token = request.GET.get("hint", "").strip()
 
@@ -195,15 +202,23 @@ def activate_user(request: Request) -> Response:
     return Response({"status": True})
 
 
-@api_view(["GET"])
-@document_api_view(
+@extend_schema(
     operation_id='resend_activation_link',
     summary='Resend activation link',
     description='Resend activation link to user email if not already activated',
-    response_serializer=ResendActivationResponseSerializer,
+    parameters=[
+        OpenApiParameter(
+            name='email',
+            description='User email address',
+            required=True,
+            type=OpenApiTypes.EMAIL,
+            location=OpenApiParameter.QUERY,
+        )
+    ],
+    responses={200: ResendActivationResponseSerializer},
     tags=['Authentication'],
-    auth_required=False,
 )
+@api_view(["GET"])
 def resend_activation_link(request: Request) -> Response:
     email = request.GET.get("email")
     s = EmailSerializer(data={"email": email})
@@ -236,15 +251,23 @@ def resend_activation_link(request: Request) -> Response:
     return Response({"status": True, "message": msgs.ACTIVATION_LINK_SENT})
 
 
-@api_view(["GET"])
-@document_api_view(
+@extend_schema(
     operation_id='forgot_password',
     summary='Request password reset',
     description='Send password reset link to user email',
-    response_serializer=SuccessResponseSerializer,
+    parameters=[
+        OpenApiParameter(
+            name='email',
+            description='User email address',
+            required=True,
+            type=OpenApiTypes.EMAIL,
+            location=OpenApiParameter.QUERY,
+        )
+    ],
+    responses={200: SuccessResponseSerializer},
     tags=['Authentication'],
-    auth_required=False,
 )
+@api_view(["GET"])
 def forgot_password(request: Request) -> Response:
     email = request.GET.get("email")
     s = EmailSerializer(data={"email": email})
@@ -271,16 +294,15 @@ def forgot_password(request: Request) -> Response:
     return Response({"status": True, 'message': msgs.PASSWORD_RESET_MAIL_SENT_SUCCESS})
 
 
-@api_view(["POST"])
-@document_api_view(
+@extend_schema(
     operation_id='reset_password',
     summary='Reset user password',
     description='Reset password using token from email',
-    request_serializer=ResetPasswordSerializer,
-    response_serializer=SuccessResponseSerializer,
+    request=ResetPasswordSerializer,
+    responses={200: SuccessResponseSerializer},
     tags=['Authentication'],
-    auth_required=False,
 )
+@api_view(["POST"])
 def reset_password(request: Request) -> Response:
 
     serializer = ResetPasswordSerializer(data=request.data)

@@ -25,23 +25,19 @@ from apps.common.response_serializers import SuccessResponseSerializer
 from apps.constants.errors import en as errors
 from apps.constants.messages import en as msgs
 from apps.common.utils import get_object_or_none
-from vedinka.schema_decorators import (
-    document_api_view,
-    document_list_endpoint,
-    document_create_endpoint,
-)
+from drf_spectacular.utils import extend_schema
 from apps.finance.transaction_handler import TransactionHandler
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-@document_list_endpoint(
+@extend_schema(
     operation_id='get_my_subscription',
     summary='Get my subscription',
     description='Retrieve current active subscription of authenticated user',
-    response_serializer=UserSubscriptionDetailSerializer,
+    responses={200: UserSubscriptionDetailSerializer},
     tags=['User Subscriptions'],
 )
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_my_subscription(request: Request) -> Response:
     """Get user's current active subscription."""
     try:
@@ -62,15 +58,15 @@ def get_my_subscription(request: Request) -> Response:
         raise ValidationError({"error": str(e)}, code=400)
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-@document_list_endpoint(
+@extend_schema(
     operation_id='view_all_subscriptions',
     summary='View all available subscriptions',
     description='Get all available subscription types with current purchase status',
-    response_serializer=AvailableSubscriptionSerializer,
+    responses={200: AvailableSubscriptionSerializer(many=True)},
     tags=['User Subscriptions'],
 )
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def view_all_subscriptions(request: Request) -> Response:
     """Get all available subscriptions with purchase status."""
     try:
@@ -85,16 +81,16 @@ def view_all_subscriptions(request: Request) -> Response:
         raise ValidationError({"error": str(e)}, code=400)
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-@document_create_endpoint(
+@extend_schema(
     operation_id='create_subscription_order',
     summary='Create subscription order',
     description='Create Razorpay order for subscription purchase',
-    request_serializer=CreateSubscriptionOrderSerializer,
-    response_serializer=SubscriptionOrderResponseSerializer,
+    request=CreateSubscriptionOrderSerializer,
+    responses={201: SubscriptionOrderResponseSerializer},
     tags=['User Subscriptions'],
 )
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def create_subscription_order(request: Request) -> Response:
     """Create subscription order using TransactionHandler."""
     try:
@@ -134,16 +130,16 @@ def create_subscription_order(request: Request) -> Response:
         raise ValidationError({"error": str(e)}, code=400)
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-@document_api_view(
+@extend_schema(
     operation_id='verify_payment',
     summary='Verify payment',
     description='Verify Razorpay payment and activate subscription',
-    request_serializer=VerifyPaymentSerializer,
-    response_serializer=SuccessResponseSerializer,
+    request=VerifyPaymentSerializer,
+    responses={200: SuccessResponseSerializer},
     tags=['User Subscriptions'],
 )
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def verify_payment(request: Request) -> Response:
     """Verify Razorpay payment and activate subscription using TransactionHandler."""
     try:
@@ -206,15 +202,15 @@ def verify_payment(request: Request) -> Response:
         raise ValidationError({"error": str(e)}, code=400)
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-@document_api_view(
+@extend_schema(
     operation_id='generate_invoice',
     summary='Generate invoice',
     description='Generate and send invoice for subscription purchase',
-    response_serializer=SuccessResponseSerializer,
+    responses={200: SuccessResponseSerializer},
     tags=['User Subscriptions'],
 )
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def generate_invoice(request: Request) -> Response:
     """Generate and send invoice for subscription."""
     try:

@@ -109,3 +109,187 @@ class BookGenre(BaseModel):
     
     def __str__(self):
         return f"{self.book.title} - {self.genre.name}"
+
+
+class BookRecommendation(BaseModel):
+    """Book recommendations - for recommended books API"""
+    RECOMMENDATION_TYPE_CHOICES = [
+        ('similar', 'Similar Books'),
+        ('author', 'Other Books by Author'),
+        ('genre', 'Same Genre'),
+        ('trending', 'Trending Now'),
+        ('curated', 'Curated Pick'),
+        ('seasonal', 'Seasonal Recommendation'),
+        ('custom', 'Custom Recommendation'),
+    ]
+    
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE,
+        related_name='recommendations',
+        help_text="Book being recommended from"
+    )
+    recommended_book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE,
+        related_name='recommended_from',
+        help_text="Book being recommended to"
+    )
+    recommendation_type = models.CharField(
+        max_length=50,
+        choices=RECOMMENDATION_TYPE_CHOICES,
+        default='similar',
+        help_text="Type of recommendation"
+    )
+    score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0.5,
+        help_text="Recommendation score (0-1.0)"
+    )
+    display_order = models.IntegerField(
+        default=0,
+        help_text="Order in which to display recommendation"
+    )
+    reason = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Reason for recommendation"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Is this recommendation active?"
+    )
+    
+    class Meta:
+        ordering = ['-score', 'display_order']
+        unique_together = ('book', 'recommended_book')
+        indexes = [
+            models.Index(fields=['book', '-score']),
+            models.Index(fields=['recommendation_type']),
+            models.Index(fields=['is_active']),
+        ]
+    
+    def __str__(self):
+        return f"{self.book.title} → {self.recommended_book.title} ({self.get_recommendation_type_display()})"
+
+
+class BookPopularity(BaseModel):
+    """Monthly popularity metrics per book"""
+    POPULARITY_STATUS_CHOICES = [
+        ('trending', 'Trending'),
+        ('popular', 'Popular'),
+        ('moderate', 'Moderate'),
+        ('new', 'New Release'),
+    ]
+    
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE,
+        related_name='popularity_metrics'
+    )
+    month = models.DateField(help_text="First day of the month (YYYY-MM-01)")
+    sales_count = models.IntegerField(default=0, help_text="Units sold this month")
+    view_count = models.IntegerField(default=0, help_text="Page views this month")
+    rating_count = models.IntegerField(default=0, help_text="Number of ratings")
+    average_rating = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        default=0,
+        help_text="Average rating"
+    )
+    popularity_score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        help_text="Calculated popularity score (0-100)"
+    )
+    rank = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Rank among all books for this month"
+    )
+    popularity_status = models.CharField(
+        max_length=20,
+        choices=POPULARITY_STATUS_CHOICES,
+        default='moderate',
+        help_text="Status based on popularity"
+    )
+    
+    class Meta:
+        ordering = ['-month', 'rank']
+        unique_together = ('book', 'month')
+        indexes = [
+            models.Index(fields=['book', '-month']),
+            models.Index(fields=['-month', 'rank']),
+            models.Index(fields=['popularity_status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.book.title} - {self.month.strftime('%B %Y')} (Rank: {self.rank})"
+
+
+class BookUploadRequest(BaseModel):
+    """Admin approval requests for book uploads"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    book = models.OneToOneField(
+        Book,
+        on_delete=models.CASCADE,
+        related_name='upload_request',
+        help_text="Reference to the uploaded book"
+    )
+    author = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name='book_upload_requests',
+        help_text="Author who uploaded the book"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        help_text="Current status of the request"
+    )
+    submitted_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When the book was submitted"
+    )
+    reviewed_by = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_upload_requests',
+        help_text="Admin who reviewed the request"
+    )
+    reviewed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the request was reviewed"
+    )
+    rejection_reason = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Reason for rejection (if rejected)"
+    )
+    admin_comments = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Additional comments from admin"
+    )
+    
+    class Meta:
+        ordering = ['-submitted_at']
+        indexes = [
+            models.Index(fields=['status', '-submitted_at']),
+            models.Index(fields=['author', 'status']),
+            models.Index(fields=['reviewed_by', '-reviewed_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.book.title} - {self.get_status_display()}"

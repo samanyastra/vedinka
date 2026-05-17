@@ -1,0 +1,18 @@
+
+user register
+    - activate user
+    - login
+
+become author
+    - buy subscription
+
+publish a book 
+* should be a author to publish a book
+    - upload a book
+    - add tags, generes
+    - set price
+    - description
+    - upload sample
+    - upload thumbnail
+    - upload preamble
+    - request publish

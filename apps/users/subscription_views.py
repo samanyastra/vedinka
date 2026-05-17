@@ -43,8 +43,6 @@ def check_admin_permission(request: Request) -> None:
 # SUBSCRIPTION TYPE ENDPOINTS
 # ============================================================================
 
-@api_view(["GET"])
-@permission_classes([IsSuperUserOrAdmin])
 @extend_schema(
     operation_id='list_subscription_types',
     summary='List all subscription types',
@@ -52,6 +50,8 @@ def check_admin_permission(request: Request) -> None:
     responses={200: SubscriptionTypeSerializer(many=True)},
     tags=['Subscriptions - Admin'],
 )
+@api_view(["GET"])
+@permission_classes([IsSuperUserOrAdmin])
 def list_subscription_types(request: Request) -> Response:
     """List all subscription types."""
     subscriptions = SubscriptionType.objects.all()
@@ -59,15 +59,15 @@ def list_subscription_types(request: Request) -> Response:
     return Response(serializer.data)
 
 
-@api_view(["GET"])
-@permission_classes([IsSuperUserOrAdmin])
 @extend_schema(
-    operation_id='get_subscription_type',
+    operation_id='retrieve_subscription_type',
     summary='Get subscription type details',
     description='Get details of a specific subscription type (Admin only)',
     responses={200: SubscriptionTypeSerializer},
     tags=['Subscriptions - Admin'],
 )
+@api_view(["GET"])
+@permission_classes([IsSuperUserOrAdmin])
 def get_subscription_type(request: Request, subscription_id: str) -> Response:
     """Get subscription type details."""
     subscription = get_object_or_none(SubscriptionType, id=subscription_id)
@@ -127,15 +127,16 @@ def update_subscription_type(request: Request, subscription_id: str) -> Response
     return Response(response_serializer.data)
 
 
-@api_view(["DELETE"])
-@permission_classes([IsSuperUserOrAdmin])
 @extend_schema(
     operation_id='delete_subscription_type',
     summary='Delete subscription type',
     description='Delete a subscription type (Admin only)',
+    request=None,
     responses={200: SuccessResponseSerializer},
     tags=['Subscriptions - Admin'],
 )
+@api_view(["DELETE"])
+@permission_classes([IsSuperUserOrAdmin])
 def delete_subscription_type(request: Request, subscription_id: str) -> Response:
     """Delete subscription type."""
     subscription = get_object_or_none(SubscriptionType, id=subscription_id)
@@ -150,8 +151,6 @@ def delete_subscription_type(request: Request, subscription_id: str) -> Response
 # USER SUBSCRIPTION ENDPOINTS
 # ============================================================================
 
-@api_view(["GET"])
-@permission_classes([IsSuperUserOrAdmin])
 @extend_schema(
     operation_id='list_user_subscriptions',
     summary='List all user subscriptions',
@@ -159,6 +158,8 @@ def delete_subscription_type(request: Request, subscription_id: str) -> Response
     responses={200: UserSubscriptionSerializer(many=True)},
     tags=['Subscriptions - Admin'],
 )
+@api_view(["GET"])
+@permission_classes([IsSuperUserOrAdmin])
 def list_user_subscriptions(request: Request) -> Response:
     """List all user subscriptions."""
     subscriptions = UserSubscription.objects.all()
@@ -166,15 +167,15 @@ def list_user_subscriptions(request: Request) -> Response:
     return Response(serializer.data)
 
 
-@api_view(["GET"])
-@permission_classes([IsSuperUserOrAdmin])
 @extend_schema(
-    operation_id='get_user_subscription',
+    operation_id='retrieve_user_subscription',
     summary='Get user subscription details',
     description='Get details of a specific user subscription (Admin only)',
     responses={200: UserSubscriptionSerializer},
     tags=['Subscriptions - Admin'],
 )
+@api_view(["GET"])
+@permission_classes([IsSuperUserOrAdmin])
 def get_user_subscription(request: Request, subscription_id: str) -> Response:
     """Get user subscription details."""
     subscription = get_object_or_none(UserSubscription, id=subscription_id)
@@ -231,15 +232,16 @@ def update_user_subscription(request: Request, subscription_id: str) -> Response
     return Response(response_serializer.data)
 
 
-@api_view(["DELETE"])
-@permission_classes([IsSuperUserOrAdmin])
 @extend_schema(
     operation_id='delete_user_subscription',
     summary='Delete user subscription',
     description='Delete a user subscription (Admin only)',
+    request=None,
     responses={200: SuccessResponseSerializer},
     tags=['Subscriptions - Admin'],
 )
+@api_view(["DELETE"])
+@permission_classes([IsSuperUserOrAdmin])
 def delete_user_subscription(request: Request, subscription_id: str) -> Response:
     """Delete user subscription."""
     subscription = get_object_or_none(UserSubscription, id=subscription_id)

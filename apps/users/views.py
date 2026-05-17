@@ -15,24 +15,20 @@ from apps.common.response_serializers import ProfileResponseSerializer
 from apps.constants.errors import en as errors
 from apps.constants.messages import en as msgs
 from apps.common.utils import get_object_or_none
-from vedinka.schema_decorators import (
-    document_api_view,
-    document_create_endpoint,
-    document_update_endpoint,
-)
+from drf_spectacular.utils import extend_schema
 
 User = get_user_model()
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-@document_api_view(
+@extend_schema(
     operation_id='get_user_profile',
     summary='Get user profile',
     description='Retrieve the authenticated user profile information',
-    response_serializer=UserProfileSerializer,
+    responses={200: UserProfileSerializer},
     tags=['Users'],
 )
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_user_profile(request: Request) -> Response:
     """Get current user's profile information."""
     try:
@@ -43,16 +39,16 @@ def get_user_profile(request: Request) -> Response:
         raise ValidationError({"error": errors.PROFILE_NOT_FOUND}, code=400)
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-@document_create_endpoint(
+@extend_schema(
     operation_id='complete_user_profile',
     summary='Complete user profile',
     description='Complete user profile on first login with phone number and additional information',
-    request_serializer=CompleteUserProfileSerializer,
-    response_serializer=ProfileResponseSerializer,
+    request=CompleteUserProfileSerializer,
+    responses={200: ProfileResponseSerializer},
     tags=['Users'],
 )
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def complete_user_profile(request: Request) -> Response:
     """Complete user profile on first login."""
     try:
@@ -78,17 +74,16 @@ def complete_user_profile(request: Request) -> Response:
         raise ValidationError({"error": str(e)}, code=400)
 
 
-@api_view(["PATCH"])
-@permission_classes([IsAuthenticated])
-@document_update_endpoint(
+@extend_schema(
     operation_id='update_user_profile',
     summary='Update user profile',
     description='Update user profile information with partial updates support',
-    request_serializer=UpdateUserProfileSerializer,
-    response_serializer=ProfileResponseSerializer,
+    request=UpdateUserProfileSerializer,
+    responses={200: ProfileResponseSerializer},
     tags=['Users'],
-    partial=True,
 )
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
 def update_user_profile(request: Request) -> Response:
     """Update user profile information."""
     try:
