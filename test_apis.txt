@@ -1,0 +1,8 @@
+GET /api/content/books/
+GET /api/content/books/?price_min=100&price_max=500
+GET /api/content/books/?category=<id>&language=<id>
+GET /api/content/books/?tags=<id1>,<id2>
+GET /api/content/books/?genres=<id1>,<id2>
+GET /api/content/books/?search=python
+GET /api/content/books/?ordering=-price
+GET /api/content/books/?price_min=50&tags=<id>&search=fiction&ordering=-created_at

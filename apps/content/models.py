@@ -1,6 +1,32 @@
 from django.db import models
+from django.conf import settings
 from apps.users.models import UserProfile
 from apps.common.models import Language, Genre, BaseModel
+
+
+def book_file_path(instance, filename):
+    """Generate file path for book PDF: author_id/book_name_id/book_id_file.pdf"""
+    return f"{instance.author.id}/{instance.id}/{instance.id}_file.pdf"
+
+
+def book_thumbnail_path(instance, filename):
+    """Generate file path for book thumbnail: author_id/book_name_id/book_id_thumb.jpeg"""
+    return f"{instance.author.id}/{instance.id}/{instance.id}_thumb.jpeg"
+
+
+def book_cover_path(instance, filename):
+    """Generate file path for book cover: author_id/book_name_id/book_id_cover.jpeg"""
+    return f"{instance.author.id}/{instance.id}/{instance.id}_cover.jpeg"
+
+
+def book_index_path(instance, filename):
+    """Generate file path for book index: author_id/book_name_id/book_id_index.pdf"""
+    return f"{instance.author.id}/{instance.id}/{instance.id}_index.pdf"
+
+
+def book_sample_path(instance, filename):
+    """Generate file path for book sample: author_id/book_name_id/book_id_sample.pdf"""
+    return f"{instance.author.id}/{instance.id}/{instance.id}_sample.pdf"
 
 
 class Category(BaseModel):
@@ -57,18 +83,27 @@ class Book(BaseModel):
     number_of_pages = models.IntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     original_file_url = models.FileField(
-        upload_to='books/',
+        upload_to=book_file_path,
         help_text="Original PDF file (< 20MB)"
     )
-    cover_image_url = models.URLField()
+    cover_image_url = models.FileField(
+        upload_to=book_cover_path,
+        help_text="Book cover image"
+    )
+    thumbnail_url = models.FileField(
+        upload_to=book_thumbnail_path,
+        blank=True,
+        null=True,
+        help_text="Book thumbnail image"
+    )
     sample_read_url = models.FileField(
-        upload_to='book_samples/',
+        upload_to=book_sample_path,
         blank=True,
         null=True,
         help_text="Sample PDF for preview"
     )
     index_file_url = models.FileField(
-        upload_to='book_indexes/',
+        upload_to=book_index_path,
         blank=True,
         null=True,
         help_text="Book index/TOC PDF"
@@ -260,7 +295,7 @@ class BookUploadRequest(BaseModel):
         help_text="When the book was submitted"
     )
     reviewed_by = models.ForeignKey(
-        'auth.User',
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

@@ -85,8 +85,9 @@ class RegisterSerializer(PasswordValidationMixin, Serializer):
 
         # Assign 'user' role by default
         user_role, _ = Role.objects.get_or_create(name="user")
-        UserProfile.objects.create(user=new_user, role=user_role)
-
+        profile = UserProfile.objects.create(user=new_user, role=user_role)
+        profile.save()
+        
         return new_user
 
     def save(self, **kwargs: Any) -> User:

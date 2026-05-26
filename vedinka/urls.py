@@ -18,6 +18,8 @@ urlpatterns = [
                 path("messaging/", include("apps.messaging.urls")),
                 # subscriptions
                 path("subscriptions/", include("apps.users.subscription_urls")),
+                # content
+                path("content/", include("apps.content.urls")),
                 path("schema/", SpectacularAPIView.as_view(), name="schema"),
                 path(
                     "swagger-ui/",
