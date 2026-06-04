@@ -3,6 +3,8 @@ from pathlib import Path
 from datetime import timedelta
 import environ
 
+import razorpay
+
 # Load .env file
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
@@ -25,7 +27,7 @@ SECRET_KEY = 'django-insecure-+_+0sfmb*)mei4-=$0_&$q5-wg7$#63h$azg2ydgjp!9nwlm#)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['api.vedinka.com', '20.204.213.152', 'localhost', '127.0.0.1', '*']
 
 
 # Application definition
@@ -53,11 +55,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
 ] + INHOUSE_APPS + THIRD_PARTY_APPS
 
 AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
+     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -229,8 +233,15 @@ SIMPLE_JWT = {
     "CHECK_USER_IS_ACTIVE": True,
 }
 
-# domain settings
-DOMAIN_ADDRESS = "http://127.0.0.1:9001/"
+# CORS Settings use with caution !!!
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ALLOWED_ORIGINS = [
+    'https://vedinka.pages.dev',
+]
+
+# domain settings #TODO change to prod 
+DOMAIN_ADDRESS = "http://127.0.0.1:5173/"
 
 # MAILING SETTINGS
 OUTLOOK_CLIENT_ID="your_outlook_client_id"
@@ -244,9 +255,11 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Kolkata'
-CELERY_BROKER_URL = f"amqp://{env('RABBITMQ_DEFAULT_USER', default='')}:{env('RABBITMQ_DEFAULT_PASS',default='')}@{env('CELERY_HOST', default='rabbitmq-mgmt')}//"
+CELERY_BROKER_URL = f"amqp://{env('RABBITMQ_DEFAULT_USER', default='')}:{env('RABBITMQ_DEFAULT_PASS',default='')}@{env('CELERY_HOST', default='rabbitmq-mgmt:5672')}//"
 print(CELERY_BROKER_URL)
 
 # Razorpay settings
+
+RAZ_CLIENT = razorpay.Client(auth=(env('RAZORPAY_KEY_ID', default=''), env('RAZORPAY_KEY_SECRET', default='')))
 RAZORPAY_KEY_ID = env('RAZORPAY_KEY_ID', default='<razorpay_key_id>')
 RAZORPAY_KEY_SECRET = env('RAZORPAY_KEY_SECRET', default='<razorpay_key_secret>')

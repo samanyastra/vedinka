@@ -41,6 +41,7 @@ from apps.auth.backend import (
 from apps.constants.errors import en as errors
 from apps.constants.messages import en as msgs
 from apps.constants.application import FORGOT_PASSWORD_TEMPLATE_NAME
+from apps.constants.application import ACTIVATION_EMAIL_TEMPLATE_NAME
 from apps.messaging.smtp import send_email
 from apps.users.models import UserProfile
 from drf_spectacular.utils import extend_schema, OpenApiParameter
@@ -146,7 +147,7 @@ def logout(request: Request) -> Response:
         raise ValidationError(errors.REFRESH_TOKEN_NOT_FOUND_ERROR, code=400)
     try:
         blacklist_token(refresh_token)
-        res = Response({"status": "success", "message": msgs.LOGOUNT_SUCCESS})
+        res = Response({"status": "success", "message": msgs.LOGOUT_SUCCESS})
         delete_response_cookie(response=res, key="vedinka_refresh")
 
         return res
@@ -243,7 +244,7 @@ def resend_activation_link(request: Request) -> Response:
     token = create_activation_token(user, "activate_user")
     activation_link = create_activation_link(token, "hint")
     send_email.delay(
-        "activation_email",
+        ACTIVATION_EMAIL_TEMPLATE_NAME,
         msgs.ACTIVATION_MAIL_SUBJECT,
         user.email,
         activation_link=activation_link,

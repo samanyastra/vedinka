@@ -1,0 +1,62 @@
+# build the image
+
+docker build . -t vedinka.azurecr.io/<your_image_name> 
+
+# push to azure container registry 
+
+docker push vedinka.azurecr.io/<your_image_name> 
+
+Note: replace <your_image_name>  with your own name eg, vedinka_backend
+
+--------------------------------------------------------------------------------------------
+
+# Prepare Deployment YAML required as per spec
+
+
+helm repo add jetstack https://charts.jetstack.io && helm repo update
+
+kubectl create namespace cert-manager
+
+helm install cert-manager jetstack/cert-manager --namespace cert-manager --set installCRDs=true
+
+
+----
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+
+# 2. Install Nginx Ingress Controller on AKS
+helm install nginx-ingress ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx \
+  --create-namespace \
+  --set controller.service.type=LoadBalancer
+
+
+kubectl apply -f deployment/cluster_issuer.yaml -n vednka
+error: resource mapping not found for name: "letsencrypt-prod" namespace: "cert-manager" from "deployment/cluster_issuer.yaml": no matches for kind "ClusterIssuer" in version "cert-manager.io/v1"
+ensure CRDs are installed first
+
+
+solution:
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm upgrade --install cert-manager jetstack/cert-manager \
+  --namespace cert-manager --create-namespace \
+  --set installCRDs=true
+
+
+helm upgrade nginx-ingress ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx \
+  --reuse-values \
+  --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"="/healthz"
+
+----
+kubectl exec -it vedinka-api-5bcb69d5db-7mzrn -n vedinka -- curl -I http://localhost:80/ 2>&1 | head -10
+
+
+___
+aws
+container registry address
+314146340867.dkr.ecr.ap-south-1.amazonaws.com/vedinka
+
+container registry login
+aws ecr get-login-password --region ap-south-1 | docker login --username AWS password-stdin 314146340867.dkr.ecr.ap-south-1.amazonaws.com

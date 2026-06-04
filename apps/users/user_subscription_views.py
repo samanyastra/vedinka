@@ -20,6 +20,7 @@ from apps.users.user_subscription_serializers import (
     CreateSubscriptionOrderSerializer,
     VerifyPaymentSerializer,
     SubscriptionOrderResponseSerializer,
+    RazorpayCheckoutResponseSerializer,
 )
 from apps.common.response_serializers import SuccessResponseSerializer
 from apps.constants.errors import en as errors
@@ -86,7 +87,7 @@ def view_all_subscriptions(request: Request) -> Response:
     summary='Create subscription order',
     description='Create Razorpay order for subscription purchase',
     request=CreateSubscriptionOrderSerializer,
-    responses={201: SubscriptionOrderResponseSerializer},
+    responses={201: RazorpayCheckoutResponseSerializer},
     tags=['User Subscriptions'],
 )
 @api_view(["POST"])
@@ -121,9 +122,11 @@ def create_subscription_order(request: Request) -> Response:
             currency=subscription_type.currency,
             payment_status='pending'
         )
+        order.save()
+        res = handler.make_user_prefill_information()
         
-        response_serializer = SubscriptionOrderResponseSerializer(order)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        # response_serializer = SubscriptionOrderResponseSerializer(order)
+        return Response(res, status=status.HTTP_201_CREATED)
     except ValidationError:
         raise
     except Exception as e:
@@ -131,8 +134,8 @@ def create_subscription_order(request: Request) -> Response:
 
 
 @extend_schema(
-    operation_id='verify_payment',
-    summary='Verify payment',
+    operation_id='verify_payment_for_subscription',
+    summary='Verify subscription payment',
     description='Verify Razorpay payment and activate subscription',
     request=VerifyPaymentSerializer,
     responses={200: SuccessResponseSerializer},
@@ -140,7 +143,7 @@ def create_subscription_order(request: Request) -> Response:
 )
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def verify_payment(request: Request) -> Response:
+def verify_payment_for_subscription(request: Request) -> Response:
     """Verify Razorpay payment and activate subscription using TransactionHandler."""
     try:
         serializer = VerifyPaymentSerializer(data=request.data)

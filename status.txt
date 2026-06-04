@@ -16,3 +16,5 @@ publish a book
     - upload thumbnail
     - upload preamble
     - request publish
+
+

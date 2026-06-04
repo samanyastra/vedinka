@@ -39,7 +39,7 @@ class TransactionHandler:
     ) -> None:
         self.client = client or getattr(settings, "RAZ_CLIENT", None)
         self.client_public_key = client_public_key or getattr(
-            settings, "RAZORPAY_KEY", None
+            settings, "RAZORPAY_KEY_ID", None
         )
         self.gateway = gateway
 

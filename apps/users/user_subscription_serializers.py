@@ -124,3 +124,18 @@ class SubscriptionOrderResponseSerializer(serializers.ModelSerializer):
             'currency', 'payment_status', 'created_at'
         ]
         read_only_fields = fields
+
+
+class RazorpayCheckoutResponseSerializer(serializers.Serializer):
+    """Serializer for Razorpay checkout response with prefill information."""
+    key = serializers.CharField(help_text="Razorpay public key")
+    prefill = serializers.DictField(
+        child=serializers.CharField(),
+        help_text="User prefill information for checkout (name, email, contact)"
+    )
+    amount = serializers.IntegerField(help_text="Order amount in paise (1 INR = 100 paise)")
+    currency = serializers.CharField(help_text="Currency code (INR)")
+    name = serializers.CharField(help_text="Company/merchant name")
+    order_id = serializers.CharField(help_text="Razorpay order ID")
+    transaction_id = serializers.CharField(help_text="Local transaction/payment ID")
+    config = serializers.DictField(help_text="Razorpay checkout configuration")
