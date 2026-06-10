@@ -260,6 +260,6 @@ print(CELERY_BROKER_URL)
 
 # Razorpay settings
 
-RAZ_CLIENT = razorpay.Client(auth=(env('RAZORPAY_KEY_ID', default=''), env('RAZORPAY_KEY_SECRET', default='')))
-RAZORPAY_KEY_ID = env('RAZORPAY_KEY_ID', default='<razorpay_key_id>')
-RAZORPAY_KEY_SECRET = env('RAZORPAY_KEY_SECRET', default='<razorpay_key_secret>')
+RAZORPAY_KEY_ID = env('RAZORPAY_KEY_ID', default='<razorpay_key_id>').strip("\n")
+RAZORPAY_KEY_SECRET = env('RAZORPAY_KEY_SECRET', default='<razorpay_key_secret>').strip("\n")
+RAZ_CLIENT = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))

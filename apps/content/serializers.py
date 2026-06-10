@@ -3,6 +3,8 @@ Serializers for content management (books, categories, etc).
 """
 from rest_framework import serializers
 from apps.content.models import Book, Category, Subcategory, Tag
+from apps.common.models import Genre, Language
+from typing import List, Dict, Any
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -33,6 +35,24 @@ class TagSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'usage_count', 'created_at', 'updated_at']
 
 
+class LanguageSerializer(serializers.ModelSerializer):
+    """Serializer for languages."""
+    
+    class Meta:
+        model = Language
+        fields = ['id', 'language_name', 'language_code', 'place_used']
+        read_only_fields = ['id']
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    """Serializer for genres."""
+    
+    class Meta:
+        model = Genre
+        fields = ['id', 'name', 'usage_count']
+        read_only_fields = ['id', 'usage_count']
+
+
 class BookListSerializer(serializers.ModelSerializer):
     """Serializer for book list view."""
     author_name = serializers.CharField(source='author.user.get_full_name', read_only=True)
@@ -59,7 +79,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
     tags = TagSerializer(source='tags_relation', many=True, read_only=True)
     genres = serializers.SerializerMethodField()
     
-    def get_genres(self, obj):
+    def get_genres(self, obj) -> List[Dict[str, Any]]:
         """Get genres for the book."""
         genres = obj.genres_relation.all()
         return [{'id': str(g.genre.id), 'name': g.genre.name} for g in genres]

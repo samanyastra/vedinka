@@ -49,3 +49,24 @@ class IsSuperUserOrAdmin(BasePermission):
                 )
             )
         )
+
+
+class IsAuthorOrAdmin(BasePermission):
+    """Permission class to check if user is author or admin.
+    
+    Returns True if user is Django superuser or has 'author' or 'admin' role.
+    Used for author-specific endpoints like creating books, tags, etc.
+    """
+    def has_permission(self, request: Request, view: Any) -> bool:
+        return (
+            request.user
+            and request.user.is_authenticated
+            and (
+                request.user.is_superuser
+                or (
+                    request.user.profile
+                    and request.user.profile.role
+                    and request.user.profile.role.name in ["author", "admin"]
+                )
+            )
+        )

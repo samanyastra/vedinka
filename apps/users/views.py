@@ -5,12 +5,15 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 
 from apps.users.serializers import (
     UserProfileSerializer,
     CompleteUserProfileSerializer,
     UpdateUserProfileSerializer,
 )
+from apps.content.author_serializers import BankDetailSerializer
+from apps.users.models import BankDetail
 from apps.common.response_serializers import ProfileResponseSerializer
 from apps.constants.errors import en as errors
 from apps.constants.messages import en as msgs
@@ -109,3 +112,63 @@ def update_user_profile(request: Request) -> Response:
         raise
     except Exception as e:
         raise ValidationError({"error": str(e)}, code=400)
+
+
+@extend_schema(
+    operation_id='get_bank_details',
+    summary='Get my bank details',
+    description='Retrieve authenticated user\'s bank account details',
+    responses={200: BankDetailSerializer},
+    tags=['Users - Bank Details'],
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_bank_details(request: Request) -> Response:
+    """Get authenticated user's bank details."""
+    try:
+        bank_detail = BankDetail.objects.get(author=request.user.profile)
+        serializer = BankDetailSerializer(bank_detail)
+        return Response(serializer.data)
+    except BankDetail.DoesNotExist:
+        raise ValidationError({'error': 'Bank details not found'}, code=404)
+    except Exception as e:
+        raise ValidationError({'error': str(e)}, code=400)
+
+
+@extend_schema(
+    operation_id='add_or_update_bank_details',
+    summary='Add or update bank details',
+    description='Add or update authenticated user\'s bank account details',
+    request=BankDetailSerializer,
+    responses={201: BankDetailSerializer},
+    tags=['Users - Bank Details'],
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_or_update_bank_details(request: Request) -> Response:
+    """Create or update bank details for authenticated user."""
+    try:
+        user_profile = request.user.profile
+        bank_detail = BankDetail.objects.filter(author=user_profile).first()
+        
+        serializer = BankDetailSerializer(data=request.data)
+        if not serializer.is_valid():
+            raise ValidationError(serializer.errors, code=400)
+        
+        if bank_detail:
+            # Update existing
+            for field, value in serializer.validated_data.items():
+                setattr(bank_detail, field, value)
+            bank_detail.save()
+            return Response(BankDetailSerializer(bank_detail).data)
+        else:
+            # Create new
+            bank_detail = BankDetail.objects.create(
+                author=user_profile,
+                **serializer.validated_data
+            )
+            return Response(BankDetailSerializer(bank_detail).data, status=status.HTTP_201_CREATED)
+    except ValidationError:
+        raise
+    except Exception as e:
+        raise ValidationError({'error': str(e)}, code=400)

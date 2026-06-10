@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
+from datetime import date
 from typing import Dict, Any
 
 from rest_framework.response import Response
@@ -44,6 +46,8 @@ from apps.constants.application import FORGOT_PASSWORD_TEMPLATE_NAME
 from apps.constants.application import ACTIVATION_EMAIL_TEMPLATE_NAME
 from apps.messaging.smtp import send_email
 from apps.users.models import UserProfile
+from apps.content.models import Book
+from apps.auth.permissions import IsSuperUserOrAdmin
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 
@@ -329,4 +333,53 @@ def reset_password(request: Request) -> Response:
     token_obj.save()
     
     return Response({"status": True, "message": msgs.PASSWORD_SAVED})
+
+
+@extend_schema(
+    operation_id='admin_stats_overview',
+    summary='Admin statistics overview',
+    description='Get overall platform statistics - total users, users joined today, total books, books uploaded today. Admin only.',
+    responses={200: {
+        'type': 'object',
+        'properties': {
+            'total_users': {'type': 'integer'},
+            'users_joined_today': {'type': 'integer'},
+            'total_books': {'type': 'integer'},
+            'books_uploaded_today': {'type': 'integer'},
+        }
+    }},
+    tags=['Admin - Statistics'],
+)
+@api_view(["GET"])
+@permission_classes([IsSuperUserOrAdmin])
+def admin_stats_overview(request: Request) -> Response:
+    """Get admin statistics overview."""
+    try:
+        today = date.today()
+        
+        # Total users count
+        total_users = User.objects.filter(is_active=True).count()
+        
+        # Users joined today
+        users_joined_today = User.objects.filter(
+            is_active=True,
+            date_joined__date=today
+        ).count()
+        
+        # Total books count
+        total_books = Book.objects.count()
+        
+        # Books uploaded today
+        books_uploaded_today = Book.objects.filter(
+            created_at__date=today
+        ).count()
+        
+        return Response({
+            'total_users': total_users,
+            'users_joined_today': users_joined_today,
+            'total_books': total_books,
+            'books_uploaded_today': books_uploaded_today,
+        })
+    except Exception as e:
+        raise ValidationError({"error": str(e)}, code=400)
 

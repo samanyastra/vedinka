@@ -156,3 +156,26 @@ class SubscriptionOrder(BaseModel):
     
     def __str__(self):
         return f"{self.user.user.username} - {self.subscription_type.name} - {self.payment_status}"
+
+
+class BankDetail(BaseModel):
+    """Bank account details for authors - for payment withdrawals"""
+    ACCOUNT_TYPE_CHOICES = [
+        ('savings', 'Savings Account'),
+        ('current', 'Current Account'),
+    ]
+    
+    author = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='bank_detail')
+    account_holder_name = models.CharField(max_length=255)
+    account_number = models.CharField(max_length=50)
+    ifsc_code = models.CharField(max_length=20)
+    bank_name = models.CharField(max_length=255)
+    branch_name = models.CharField(max_length=255, blank=True, null=True)
+    account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPE_CHOICES, default='savings')
+    is_verified = models.BooleanField(default=False, help_text="Admin verification status")
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.author.user.username} - {self.account_number[-4:]} ({self.bank_name})"

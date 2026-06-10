@@ -11,6 +11,7 @@ from apps.auth.views import (
     resend_activation_link,
     forgot_password,
     reset_password,
+    admin_stats_overview,
 )
 
 router = DefaultRouter()
@@ -26,5 +27,6 @@ urlpatterns = [
     path("resend-activation-mail", resend_activation_link, name="resend_activation_link"),
     path("forgot-password", forgot_password, name="forgot_password"),
     path("reset-password", reset_password, name="reset_password"),
+    path("admin/stats-overview", admin_stats_overview, name="admin_stats_overview"),
     path('', include(router.urls)),
 ]
