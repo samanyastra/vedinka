@@ -178,7 +178,7 @@ class TransactionHandler:
                 },
                 "amount": self.order_amount,
                 "currency": "INR",
-                "name": getattr(settings, "COMPANY_NAME", "Samanyastra"),
+                "name": getattr(settings, "COMPANY_NAME", "Vedinka"),
                 "order_id": self.order.client_order_id,
                 "config": self.config,
                 "transaction_id": str(self.payment.id),
