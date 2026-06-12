@@ -11,4 +11,5 @@ router.register(r'books', BookViewSet, basename='book')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('', include('apps.content.book_showcase_urls')),
 ]

@@ -125,7 +125,6 @@ def create_subscription_order(request: Request) -> Response:
         order.save()
         res = handler.make_user_prefill_information()
         
-        # response_serializer = SubscriptionOrderResponseSerializer(order)
         return Response(res, status=status.HTTP_201_CREATED)
     except ValidationError:
         raise
@@ -192,6 +191,13 @@ def verify_payment_for_subscription(request: Request) -> Response:
             valid_till=valid_till
         )
         
+        # Assign author role to user if subscription grants it
+        from apps.users.models import Role
+        author_role = get_object_or_none(Role, name='author')
+        if author_role and order.user.role != author_role:
+            order.user.role = author_role
+            order.user.save()
+        
         # Send confirmation email with invoice
         _send_invoice_email(order, valid_till)
         
@@ -253,41 +259,57 @@ def generate_invoice(request: Request) -> Response:
 
 
 def _send_invoice_email(order: SubscriptionOrder, valid_till: datetime) -> None:
-    """Helper function to send invoice email."""
-    from django.template.loader import render_to_string
+    """Helper function to send invoice email with bill breakdown."""
     from apps.messaging.smtp import send_email
-    from decimal import Decimal
+    from apps.finance.bill_breakdown_handler import BillBreakdownHandler
     
-    # Calculate platform charges (2% of product amount)
-    platform_charges = order.amount * Decimal('0.02')
-    total_amount = order.amount + platform_charges
-    
-    # Prepare invoice context
-    invoice_context = {
-        'invoice_id': str(order.id)[:8].upper(),
-        'invoice_date': order.created_at.strftime('%d %b, %Y'),
-        'customer_name': order.user.user.get_full_name() or order.user.user.username,
-        'customer_email': order.user.user.email,
-        'product_name': order.subscription_type.name,
-        'product_amount': f"{order.amount:.2f}",
-        'duration_days': order.subscription_type.duration_in_days,
-        'platform_charges': f"{platform_charges:.2f}",
-        'total_amount': f"{total_amount:.2f}",
-        'payment_method': 'Razorpay',
-        'transaction_id': order.razorpay_payment_id or 'N/A',
-        'valid_till': valid_till.strftime('%d %b, %Y'),
-    }
-    
-    # Render HTML template
-    html_message = render_to_string(
-        'subscription_invoice.html',
-        invoice_context
-    )
-    
-    # Send invoice email
-    send_email.delay(
-        'subscription_invoice',
-        f'Invoice for {order.subscription_type.name} Subscription',
-        order.user.user.email,
-        html_message=html_message,
-    )
+    try:
+        # Step 1: Calculate bill breakdown
+        breakdown_handler = BillBreakdownHandler(
+            user_id=order.user.user.id,
+            subtotal=float(order.amount),
+            transaction_type="SUBSCRIPTION",
+            reference_id=f"SUB_ORDER_{order.id}"
+        )
+        
+        breakdown = breakdown_handler.calculate_breakdown()
+        
+        # Step 2: Save to ledger (audit trail)
+        bill_ledger = breakdown_handler.save_bill_ledger()
+        
+        # Step 3: Extract breakdown details
+        gst_amount = None
+        for line in breakdown['lines']:
+            if 'GST' in line['name'].upper():
+                gst_amount = line['calculated_amount']
+                break
+        
+        if gst_amount is None:
+            gst_amount = breakdown['total_charges']
+        
+        # Prepare invoice context - these variables will be used by Django template
+        context = {
+            'invoice_id': str(order.id)[:8].upper(),
+            'invoice_date': order.created_at.strftime('%d %b, %Y'),
+            'customer_name': order.user.user.get_full_name() or order.user.user.username,
+            'customer_email': order.user.user.email,
+            'product_name': order.subscription_type.name,
+            'product_amount': f"{order.amount:.2f}",
+            'duration_days': order.subscription_type.duration_in_days,
+            'valid_till': valid_till.strftime('%d %b, %Y'),
+            'gst_amount': f"{gst_amount:.2f}",
+            'total_amount': f"{breakdown['final_amount']:.2f}",
+            'payment_method': 'Razorpay',
+            'transaction_id': order.razorpay_payment_id or 'N/A',
+        }
+        
+        # Send invoice email using Celery task
+        # send_email.delay(template_name, subject, *to_mail, **context)
+        send_email.delay(
+            'subscription_invoice',
+            f'Invoice for {order.subscription_type.name} Subscription',
+            order.user.user.email,
+            **context
+        )
+    except Exception as e:
+        print(f"Error sending invoice email: {str(e)}")

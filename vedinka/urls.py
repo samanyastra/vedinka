@@ -22,6 +22,8 @@ urlpatterns = [
                 # content
                 path("content/", include("apps.content.urls")),
                 path("author/", include("apps.content.author_urls")),
+                # finance
+                path("finance/", include("apps.finance.urls")),
                 path("schema/", SpectacularAPIView.as_view(), name="schema"),
                 path(
                     "swagger-ui/",

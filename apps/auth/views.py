@@ -42,8 +42,9 @@ from apps.auth.backend import (
 )
 from apps.constants.errors import en as errors
 from apps.constants.messages import en as msgs
-from apps.constants.application import FORGOT_PASSWORD_TEMPLATE_NAME
-from apps.constants.application import ACTIVATION_EMAIL_TEMPLATE_NAME
+from apps.constants.application import (FORGOT_PASSWORD_TEMPLATE_NAME,
+                                        ACTIVATION_EMAIL_TEMPLATE_NAME,
+                                        RETRIVE_PASSWORD_DB_CODE)
 from apps.messaging.smtp import send_email
 from apps.users.models import UserProfile
 from apps.content.models import Book
@@ -288,7 +289,7 @@ def forgot_password(request: Request) -> Response:
     if not user.is_active:
         raise ValidationError({"error": errors.USER_INACTIVE})
 
-    token = create_activation_token(user, "retrive_creds")
+    token = create_activation_token(user, RETRIVE_PASSWORD_DB_CODE)
     reset_link = create_activation_link(token, "retrive", path="reset-password")
     send_email.delay(
        FORGOT_PASSWORD_TEMPLATE_NAME,

@@ -116,3 +116,10 @@ RAZORPAY_ORDER_CREATION_FAILED = "Failed to create Razorpay order"
 RAZORPAY_PAYMENT_VERIFICATION_FAILED = "Failed to verify Razorpay payment"
 RAZORPAY_CLIENT_NOT_CONFIGURED = "Razorpay client is not configured"
 RAZORPAY_INVALID_CREDENTIALS = "Invalid Razorpay credentials"
+
+# BILL BREAKDOWN ERRORS
+BILL_BREAKDOWN_FAILED = "Failed to calculate bill breakdown"
+INVALID_CHARGE_CONFIGURATION = "Invalid charge configuration"
+CHARGE_NOT_FOUND = "Charge configuration not found"
+INVALID_CHARGE_AMOUNT_TYPE = "Invalid charge amount type. Must be '%' or 'INR'"
+INVALID_CHARGE_AMOUNT = "Charge amount must be greater than zero"

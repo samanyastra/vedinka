@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vedinka Subscription Invoice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+        }
+        
+        .email-container {
+            max-width: 700px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(122, 19, 84, 0.08);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #7A1354 0%, #6B0F45 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .header-title {
+            color: #F7F1F5;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        
+        .header-subtitle {
+            color: #EDEBE4;
+            font-size: 13px;
+            margin-top: 8px;
+            opacity: 0.9;
+            letter-spacing: 0.5px;
+        }
+        
+        .divider {
+            height: 3px;
+            background-color: #F7F1F5;
+            margin-top: 15px;
+            width: 60px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .content {
+            padding: 40px;
+            background-color: #ffffff;
+        }
+        
+        .greeting {
+            color: #7A1354;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .message {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        
+        .message strong {
+            color: #74642F;
+            font-weight: 600;
+        }
+        
+        .highlight {
+            color: #7A1354;
+            font-weight: 600;
+        }
+        
+        .invoice-section {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #F7F1F5;
+            border-radius: 8px;
+        }
+        
+        .section-title {
+            color: #7A1354;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        
+        .invoice-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .invoice-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .invoice-label {
+            color: #333333;
+            font-weight: 500;
+        }
+        
+        .invoice-value {
+            color: #333333;
+            text-align: right;
+        }
+        
+        .invoice-value.amount {
+            font-weight: 600;
+            color: #7A1354;
+        }
+        
+        .divider-line {
+            height: 1px;
+            background-color: #EDEBE4;
+            margin: 12px 0;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 700;
+            color: #7A1354;
+            padding-top: 12px;
+            border-top: 2px solid #EDEBE4;
+        }
+        
+        .confirmation-box {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #E8F5E9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+        }
+        
+        .confirmation-title {
+            color: #2E7D32;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .confirmation-text {
+            color: #2E7D32;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .details-section {
+            margin: 25px 0;
+        }
+        
+        .details-title {
+            color: #7A1354;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        
+        .details-info {
+            font-size: 14px;
+            color: #333333;
+            line-height: 1.8;
+        }
+        
+        .details-info-label {
+            color: #74642F;
+            font-weight: 600;
+        }
+        
+        .footer {
+            background-color: #F7F1F5;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #EDEBE4;
+        }
+        
+        .footer-text {
+            color: #74642F;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .footer-brand {
+            color: #7A1354;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        
+        .social-links {
+            margin-top: 15px;
+        }
+        
+        .social-link {
+            display: inline-block;
+            margin: 0 8px;
+            color: #7A1354;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        @media only screen and (max-width: 700px) {
+            .content {
+                padding: 25px 20px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .footer {
+                padding: 20px 15px;
+            }
+            
+            .header-title {
+                font-size: 24px;
+            }
+            
+            .greeting {
+                font-size: 16px;
+            }
+            
+            .invoice-row {
+                font-size: 13px;
+            }
+            
+            .total-row {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="header-title">VEDINKA</h1>
+            <p class="header-subtitle">Subscription Confirmation</p>
+            <div class="divider"></div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <p class="greeting">Hello {{ customer_name }},</p>
+            
+            <p class="message">
+                Thank you for your subscription! Your payment has been processed successfully.
+                <span class="highlight">You now have access</span> to your subscription plan.
+            </p>
+            
+            <!-- Confirmation Message -->
+            <div class="confirmation-box">
+                <div class="confirmation-title">✓ Payment Confirmed</div>
+                <div class="confirmation-text">
+                    Your subscription is now active and ready to use.
+                </div>
+            </div>
+            
+            <!-- Invoice Section -->
+            <div class="invoice-section">
+                <div class="section-title">Subscription Details</div>
+                
+                <div class="invoice-row">
+                    <span class="invoice-label">Plan:</span>
+                    <span class="invoice-value">{{ product_name }}</span>
+                </div>
+                
+                <div class="invoice-row">
+                    <span class="invoice-label">Duration:</span>
+                    <span class="invoice-value">{{ duration_days }} days</span>
+                </div>
+                
+                <div class="invoice-row">
+                    <span class="invoice-label">Valid Till:</span>
+                    <span class="invoice-value">{{ valid_till }}</span>
+                </div>
+                
+                <div class="divider-line"></div>
+                
+                <div class="invoice-row">
+                    <span class="invoice-label">Plan Amount:</span>
+                    <span class="invoice-value amount">₹{{ product_amount }}</span>
+                </div>
+                
+                <div class="invoice-row">
+                    <span class="invoice-label">GST (18%):</span>
+                    <span class="invoice-value">₹{{ gst_amount }}</span>
+                </div>
+                
+                <div class="total-row">
+                    <span>Total Amount Paid</span>
+                    <span>₹{{ total_amount }}</span>
+                </div>
+            </div>
+            
+            <!-- Subscription Details -->
+            <div class="details-section">
+                <div class="details-title">Your Subscription</div>
+                <div class="details-info">
+                    <div>
+                        <span class="details-info-label">Email:</span>
+                        <span>{{ customer_email }}</span>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <span class="details-info-label">Transaction ID:</span>
+                        <span>{{ transaction_id }}</span>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <span class="details-info-label">Payment Method:</span>
+                        <span>{{ payment_method }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                If you have any questions, please contact our support team.
+            </p>
+            <p class="footer-brand">VEDINKA</p>
+            <div class="social-links">
+                <a href="#" class="social-link">Privacy</a>
+                <span style="color: #74642F;">•</span>
+                <a href="#" class="social-link">Terms</a>
+                <span style="color: #74642F;">•</span>
+                <a href="#" class="social-link">Contact</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

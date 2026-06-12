@@ -109,6 +109,7 @@ class Book(BaseModel):
         help_text="Book index/TOC PDF"
     )
     purchase_count = models.IntegerField(default=0)
+    is_featured = models.BooleanField(default=False, help_text="Is this book featured?")
     
     class Meta:
         ordering = ['-created_at']
@@ -328,3 +329,4 @@ class BookUploadRequest(BaseModel):
     
     def __str__(self):
         return f"{self.book.title} - {self.get_status_display()}"
+

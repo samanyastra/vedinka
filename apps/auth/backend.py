@@ -122,7 +122,8 @@ def create_activation_token(user, token_type_code: str):
     token_obj, created = ActivationTokens.objects\
                                          .get_or_create(
                                              user=user,
-                                             token_type=token_type)
+                                             token_type=token_type,
+                                             is_expired=False)
     if created:
         user_token = create_rand_string(ACTIVATION_TOKEN_LENGTH)
         token_obj.token = user_token

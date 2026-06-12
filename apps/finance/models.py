@@ -231,3 +231,134 @@ class AuthorSalesMetrics(BaseModel):
     
     def __str__(self):
         return f"{self.author.user.username} - {self.month.strftime('%B %Y')} ({self.total_sales_count} sales)"
+
+
+class Cart(BaseModel):
+    """Shopping cart for users"""
+    user = models.OneToOneField(
+        'users.UserProfile',
+        on_delete=models.CASCADE,
+        related_name='cart'
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Cart - {self.user.user.username}"
+
+
+class CartItem(BaseModel):
+    """Individual items in a shopping cart"""
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    book = models.ForeignKey(
+        'content.Book',
+        on_delete=models.CASCADE,
+        related_name='cart_items'
+    )
+    quantity = models.IntegerField(default=1, help_text="Quantity of the book in cart")
+    added_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('cart', 'book')
+        ordering = ['-added_at']
+        indexes = [
+            models.Index(fields=['cart', '-added_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.cart.user.user.username} - {self.book.title} (qty: {self.quantity})"
+
+
+class Charge(BaseModel):
+    """Charge templates for bill breakdown"""
+    AMOUNT_TYPE_CHOICES = [
+        ('%', 'Percentage'),
+        ('INR', 'Fixed Amount (INR)'),
+    ]
+    
+    name = models.CharField(max_length=100, help_text="Charge name (e.g., Platform Fee, GST, Shipping)")
+    description = models.TextField(blank=True, help_text="Charge description")
+    amount_type = models.CharField(max_length=10, choices=AMOUNT_TYPE_CHOICES, help_text="% or INR")
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Amount value (e.g., 5 for 5% or 200 for 200 INR)"
+    )
+    is_active = models.BooleanField(default=True, help_text="Enable/disable charge application")
+    apply_to_order = models.BooleanField(default=True, help_text="Apply to book orders")
+    apply_to_subscription = models.BooleanField(default=True, help_text="Apply to subscriptions")
+    
+    class Meta:
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['is_active']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} ({self.amount}{self.amount_type})"
+
+
+class BillLine(BaseModel):
+    """Individual line item in a bill breakdown"""
+    name = models.CharField(max_length=100, help_text="Line item name")
+    amount_type = models.CharField(max_length=10, choices=Charge.AMOUNT_TYPE_CHOICES)
+    base_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Base amount for % calculations"
+    )
+    calculated_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Final calculated amount after % application"
+    )
+    
+    class Meta:
+        ordering = ['name']
+    
+    def __str__(self):
+        return f"{self.name}: {self.calculated_amount}"
+
+
+class BillLedger(BaseModel):
+    """Bill breakdown ledger for audit trail"""
+    TRANSACTION_TYPE_CHOICES = [
+        ('ORDER', 'Book Order'),
+        ('SUBSCRIPTION', 'Subscription'),
+        ('REFUND', 'Refund'),
+    ]
+    
+    user = models.ForeignKey(
+        'users.UserProfile',
+        on_delete=models.CASCADE,
+        related_name='bill_ledgers'
+    )
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES)
+    reference_id = models.CharField(max_length=100, help_text="Order ID, Payment ID, or Subscription ID")
+    
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, help_text="Subtotal before charges")
+    breakdown_json = models.JSONField(
+        help_text="Complete breakdown with all charges applied",
+        default=dict
+    )
+    total_charges = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Sum of all charges"
+    )
+    final_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Subtotal + total charges"
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['reference_id']),
+        ]
+    
+    def __str__(self):
+        return f"Bill {self.id} - {self.user.user.username} ({self.transaction_type})"
